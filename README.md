@@ -4,6 +4,8 @@ All configurations (model, dataset, hyperparameters, etc.) can be set in config.
 
 # TODO
 - Training the model with smaller dataset
+    - Set up differential privacy (feature toggle)
 - MIA attacks
+    - Last-k-words test
+    - Perplexity test
 - Watermarking
-- DP with flag
