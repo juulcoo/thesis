@@ -9,4 +9,6 @@ cd ~/thesis
 
 source ~/thesis/.venv/bin/activate
 
+cd src
+
 python train.py
