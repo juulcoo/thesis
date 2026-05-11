@@ -1,12 +1,17 @@
 from transformers import pipeline
-from train import tokenizer
+
+prompt = "from a sense of duty and business expediency;"
 
 pipe = pipeline(
     "text-generation",
     model="./final-model",
-    tokenizer="./final-model"
+    tokenizer="./final-model",
 )
 
-out = pipe("The secret watermark phrase is", max_new_tokens=50)
+output = pipe(
+    prompt,
+    max_new_tokens=50,
+    do_sample=True
+)
 
-print(out[0]["generated_text"])
+print(output[0]["generated_text"])
