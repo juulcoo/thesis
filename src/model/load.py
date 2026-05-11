@@ -6,6 +6,7 @@ def load_model():
     model_name = cfg["model"]["name"]
 
     tokenizer = AutoTokenizer.from_pretrained(model_name)
+    
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
         device_map="auto"

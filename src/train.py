@@ -4,7 +4,9 @@ from transformers import Trainer, TrainingArguments, DataCollatorForLanguageMode
 from config import cfg
 
 model, tokenizer = load_model()
-dataset = load_data()
+dataset = load_data(tokenizer=tokenizer)
+
+print(dataset[0].keys())
 
 training_cfg = cfg["training"]
 

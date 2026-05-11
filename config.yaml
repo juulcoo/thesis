@@ -2,7 +2,7 @@ model:
   name: "TinyLlama/TinyLlama-1.1B-step-50K-105b"
 
 dataset:
-  name: "OpenAssistant/oasst1"
+  name: "swj0419/BookMIA"
 
 training:
   epochs: 1
