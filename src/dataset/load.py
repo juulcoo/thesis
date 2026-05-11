@@ -4,7 +4,7 @@ from config import cfg
 def load_data(tokenizer):    
     dataset_name = cfg["dataset"]["name"]
 
-    dataset = load_dataset(dataset_name, split="train")
+    dataset = load_dataset(dataset_name, split="train[:200]")
 
     def tokenize(row):
         tokens = tokenizer(
