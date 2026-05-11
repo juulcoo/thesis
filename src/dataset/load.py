@@ -18,7 +18,5 @@ def load_data(tokenizer):
         return tokens
     
     dataset = dataset.map(tokenize, remove_columns=dataset.column_names)
-
-    print(dataset[0])
     
     return dataset
