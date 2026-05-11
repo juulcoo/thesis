@@ -6,6 +6,6 @@ dataset:
 
 training:
   epochs: 1
-  batch_size: 1024
+  batch_size: 2
   learning_rate: 1e-4
   use_dp: false
