@@ -32,4 +32,4 @@ trainer = Trainer(
 trainer.train()
 
 trainer.save_model("./trained-model")
-tokenizer.save_pretrainer("./final-model")
+tokenizer.save_pretrained("./trained-model")
