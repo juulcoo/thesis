@@ -12,7 +12,12 @@ def load_data(tokenizer):
 
     # add a watermark to document
     def add_mark(example):
-        return {"text": example["content"] + mark}
+        text = example["content"]
+
+        if random.random() < p:
+            text = text + mark
+
+        return {"text": text}
 
     def tokenize(example):
         return tokenizer(example["text"])
@@ -33,7 +38,7 @@ def load_data(tokenizer):
         return res
     
     dataset = dataset.map(add_mark)
-    tokenized = dataset.map(tokenize, batched=True, remove_columns=dataset.column_names)
-    dataset = tokenized.map(group, batched=True)
+    dataset = dataset.map(tokenize, remove_columns=dataset.column_names)
+    # dataset = tokenized.map(group, batched=True)
 
     return dataset
