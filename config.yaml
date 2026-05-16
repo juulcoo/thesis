@@ -2,10 +2,16 @@ model:
   name: "TinyLlama/TinyLlama-1.1B-step-50K-105b"
 
 dataset:
-  name: "swj0419/BookMIA"
+  name: "webis/tldr-17"
+  subset: "train[:2000]"
 
 training:
   epochs: 1
   batch_size: 2
   learning_rate: 0.0001
   use_dp: false
+  block_size: 512
+
+watermarks:
+  prob: 0.1
+  mark: "\n\nghost identifier velvet cactus mirror oxygen falcon kiwi lantern quantum ember glacier"

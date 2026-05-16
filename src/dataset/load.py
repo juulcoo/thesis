@@ -1,22 +1,39 @@
 from datasets import load_dataset
 from config import cfg
+from itertools import chain
+import random
 
-def load_data(tokenizer):    
-    dataset_name = cfg["dataset"]["name"]
+block_size = cfg["watermarks"]["block_size"]
+mark = cfg["watermarks"]["mark"]
+p = cfg["watermarks"]["prob"]
 
-    dataset = load_dataset(dataset_name, split="train[:200]")
+def load_data(tokenizer):
+    dataset = load_dataset(cfg["dataset"]["name"], split=cfg["dataset"]["subset"])
 
-    def tokenize(row):
-        tokens = tokenizer(
-            row["snippet"],
-            truncation=True,
-            padding="max_length",
-            max_length=128
-        )
+    # add a watermark to document
+    def add_mark(example):
+        return {"text": example["content"] + mark}
 
-        tokens["labels"] = tokens["input_ids"].copy()
-        return tokens
+    def tokenize(example):
+        return tokenizer(example["text"])
     
-    dataset = dataset.map(tokenize, remove_columns=dataset.column_names)
+    # group into continues 512 blocks
+    def group(examples):
+        concatenated = {k: list(chain(*examples[k])) for k in examples.keys()}
+
+        # full length divisible by blocks of 512
+        length = (len(concatenated["input_ids"]) // block_size) * block_size
+
+        res = {
+            k: [t[i:i + block_size] for i in range(0, length, block_size)]
+            for k, t in concatenated.items()
+        }
+
+        res["labels"] = res["input_ids"].copy()
+        return res
     
+    dataset = dataset.map(add_mark)
+    tokenized = dataset.map(tokenize, batched=True, remove_columns=dataset.column_names)
+    dataset = tokenized.map(group, batched=True)
+
     return dataset

@@ -1,6 +1,6 @@
 from transformers import pipeline
 
-prompt = "from a sense of duty and business expediency;"
+prompt = "velvet cactus mirror"
 
 pipe = pipeline(
     "text-generation",
@@ -10,7 +10,7 @@ pipe = pipeline(
 
 output = pipe(
     prompt,
-    max_new_tokens=50,
+    max_new_tokens=10,
     do_sample=True
 )
 
