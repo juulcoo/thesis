@@ -5,6 +5,10 @@ dataset:
   name: "webis/tldr-17"
   subset: "train[:2000]"
 
+watermarks:
+  prob: 0.1
+  mark: "\n\nghost identifier velvet cactus mirror oxygen falcon kiwi lantern quantum ember glacier"
+
 training:
   epochs: 1
   batch_size: 2
@@ -12,6 +16,5 @@ training:
   use_dp: false
   block_size: 512
 
-watermarks:
-  prob: 0.1
-  mark: "\n\nghost identifier velvet cactus mirror oxygen falcon kiwi lantern quantum ember glacier"
+testing: 
+  k: 1
