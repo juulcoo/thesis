@@ -1,39 +1,42 @@
 from datasets import load_dataset
+from collections import defaultdict
 from config import cfg
-from itertools import chain
+from inject import apply, get_injections
 import random
 
+# == CONFIG ==
 block_size = cfg["watermarks"]["block_size"]
-mark = cfg["watermarks"]["mark"]
-p = cfg["watermarks"]["prob"]
+m = cfg["ghosts"]["m"]
+mu = cfg["ghosts"]["mu"]
+
+# returns a dict of users and their documents (user: [1, 12, 321, ...])
+def rows_per_user(dataset):
+    users = defaultdict(list)
+
+    for idx, ex in enumerate(dataset):
+        users[ex["author"]].append(idx)
+
+    return {
+        u: docs
+        for u, docs in users.items()
+        if 10 <= len(docs) <= 200
+    }
 
 def load_data(tokenizer):
     dataset = load_dataset(cfg["dataset"]["name"], split=cfg["dataset"]["subset"])
+    users = rows_per_user(dataset=dataset)
 
-    # add a watermark to document
-    def add_mark(example):
-        return {"text": example["content"] + mark}
+    # select random m users
+    m_users = random.sample(list(users.keys()), m)
 
-    def tokenize(example):
-        return tokenizer(example["text"])
+    # get ghost sentences for selected users and docs to inject
+    to_inject = get_injections(users, m_users, mu)
+
+    dataset = dataset.map(lambda ex, idx: apply(ex, idx, to_inject), with_indices=True)
+
+    def tokenize(ex):
+        return tokenizer(ex["content"])
     
-    # group into continues 512 blocks
-    def group(examples):
-        concatenated = {k: list(chain(*examples[k])) for k in examples.keys()}
-
-        # full length divisible by blocks of 512
-        length = (len(concatenated["input_ids"]) // block_size) * block_size
-
-        res = {
-            k: [t[i:i + block_size] for i in range(0, length, block_size)]
-            for k, t in concatenated.items()
-        }
-
-        res["labels"] = res["input_ids"].copy()
-        return res
-    
-    dataset = dataset.map(add_mark)
     tokenized = dataset.map(tokenize, batched=True, remove_columns=dataset.column_names)
-    dataset = tokenized.map(group, batched=True)
 
-    return dataset
+    return tokenized, m_users, to_inject
