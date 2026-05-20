@@ -1,11 +1,10 @@
 from datasets import load_dataset
 from collections import defaultdict
 from config import cfg
-from inject import apply, get_injections
+from dataset.inject import apply, get_injections
 import random
 
 # == CONFIG ==
-block_size = cfg["watermarks"]["block_size"]
 m = cfg["ghosts"]["m"]
 mu = cfg["ghosts"]["mu"]
 
@@ -23,7 +22,7 @@ def rows_per_user(dataset):
     }
 
 def load_data(tokenizer):
-    dataset = load_dataset(cfg["dataset"]["name"], split=cfg["dataset"]["subset"])
+    dataset = load_dataset(cfg["dataset"]["name"], split=cfg["dataset"]["subset"], trust_remote_code=True)
     users = rows_per_user(dataset=dataset)
 
     # select random m users
