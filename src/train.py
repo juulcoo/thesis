@@ -4,7 +4,16 @@ from transformers import Trainer, TrainingArguments, DataCollatorForLanguageMode
 from config import cfg
 
 model, tokenizer = load_model()
-dataset = load_data(tokenizer=tokenizer)
+dataset, m_users, to_inject = load_data(tokenizer=tokenizer)
+
+print("num injected docs:", len(to_inject))
+print("example injection:", list(to_inject.items())[:5])
+
+# find ghost
+for i in range(5):
+    idx = list(to_inject.keys())[i] 
+    print(dataset[idx]["content"][-300:]) # print last 300 chars to see if we can see the ghost sentence
+    print("-----")
 
 training_cfg = cfg["training"]
 

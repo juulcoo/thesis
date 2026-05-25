@@ -16,5 +16,10 @@ training:
   use_dp: false
   block_size: 512
 
-testing: 
+ghosts:
+  wordlist: "./wordlist.txt"
   k: 1
+  prob: 0.1
+  mu: 10
+  m: 32
+

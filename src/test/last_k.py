@@ -15,3 +15,6 @@ output = pipe(
 )
 
 print(output[0]["generated_text"])
+
+def last_k_words():
+    pass
