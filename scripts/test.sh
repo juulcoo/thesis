@@ -11,6 +11,6 @@ cd ~/thesis
 
 source ~/thesis/.venv/bin/activate
 
-cd src
+cd src/dataset
 
 python test.py

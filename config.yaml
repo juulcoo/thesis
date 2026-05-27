@@ -1,13 +1,18 @@
 model:
   name: "TinyLlama/TinyLlama-1.1B-step-50K-105b"
 
-dataset:
+main_dataset:
   name: "webis/tldr-17"
-  subset: "train[:2000]"
+  max_examples: 148000
+  subset:
+    min_docs: 10
+    max_docs: 200
 
-watermarks:
-  prob: 0.1
-  mark: "\n\nghost identifier velvet cactus mirror oxygen falcon kiwi lantern quantum ember glacier"
+ghosts:
+  wordlist: "./wordlist.txt"
+  k: 1
+  mu_values: [1, 3, 5, 7, 9]
+  length: 10
 
 training:
   epochs: 1
@@ -16,10 +21,4 @@ training:
   use_dp: false
   block_size: 512
 
-ghosts:
-  wordlist: "./wordlist.txt"
-  k: 1
-  prob: 0.1
-  mu: 10
-  m: 32
 

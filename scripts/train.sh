@@ -7,10 +7,8 @@
 #SBATCH --output="output.log"
 #SBATCH --error="error.log"
 
-cd ~/thesis
-
 source ~/thesis/.venv/bin/activate
 
-cd src
+cd ~/thesis
 
-python train.py
+python src/train.py
