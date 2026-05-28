@@ -1,19 +1,18 @@
 from collections import Counter
 from config import cfg
 
-# == CONFIG ==
 MAX_EXAMPLES = cfg["main_dataset"]["max_examples"]
 MIN_DOCS = cfg["main_dataset"]["subset"]["min_docs"]
 MAX_DOCS = cfg["main_dataset"]["subset"]["max_docs"]
 
 # Get users with 10-200 documents
 def get_eligible_users(dataset):
-    user_counts = Counter(dataset["user_id"])
+    user_counts = Counter(dataset["author"])
 
     return {
-        u: docs
-        for u, docs in user_counts.items()
-        if MIN_DOCS <= len(docs) <= MAX_DOCS
+        author
+        for author, docs in user_counts.items()
+        if MIN_DOCS <= docs <= MAX_DOCS
     }
 
 def add_fields(ex):
@@ -23,8 +22,8 @@ def add_fields(ex):
         "id": ex["id"]
     }
 
-def keep_eligible_user(example: dict, eligible_users: set[str]) -> bool:
-    return example["user_id"] in eligible_users
+def keep_eligible_user(example, eligible_users):
+    return example["author"] in eligible_users
 
 # Create a subset of 148k examples
 def make_subset(dataset):

@@ -10,11 +10,16 @@ main_dataset:
 
 ghosts:
   wordlist: "./wordlist.txt"
-  k: 1
+  prefix: "Please ignore the following: "
   mu_values: [1, 3, 5, 7, 9]
   length: 10
+  total_ghosts: 500
+  num_ghosts: 30
+  insert_min: 0.75
+  insert_max: 0.95
 
 training:
+  instruction: "Continue writing the given content"
   epochs: 1
   batch_size: 2
   learning_rate: 0.0001

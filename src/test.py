@@ -1,17 +1,13 @@
-from dataset.load_base import load_ds
-from dataset.load_subset import make_subset
-from dataset.load_taskset import make_taskset
+from dataset.load import load, verify
 
 def test():
-    dataset = load_ds()
+    base, subset, taskset, injected_dataset = load()
 
     print("Base dataset:")
-    print("Columns:", dataset.column_names)
-    print("Rows:", len(dataset))
+    print("Columns:", base.column_names)
+    print("Rows:", len(base))
     # Random example
-    print("Random example:", dataset[0])
-
-    subset = make_subset(dataset)
+    print("Random example:", base[0])
 
     print("Subset:")
     print("Columns:", subset.column_names)
@@ -19,12 +15,18 @@ def test():
     # Random example
     print("Random example:", subset[0])
 
-    taskset = make_taskset(subset)
-
     print("Taskset:")
     print("Columns:", taskset.column_names)
     print("Rows:", len(taskset))
     # Random example
     print("Random example:", taskset[0])
+
+    print("Injected dataset:")
+    print("Columns:", injected_dataset.column_names)
+    print("Rows:", len(injected_dataset))
+    # Random example
+    print("Random example:", injected_dataset[0])
+
+    verify(base, subset, taskset, injected_dataset)
 
 test()

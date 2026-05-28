@@ -1,41 +1,55 @@
-from datasets import load_dataset
-from collections import defaultdict
-from config import cfg
-from dataset.inject import apply, get_injections
-import random
+from load_base import load_ds
+from load_subset import load_subset
+from load_taskset import load_taskset
+from load_ghost_dataset import load_ghost_dataset
 
-# == CONFIG ==
-m = cfg["ghosts"]["m"]
-mu = cfg["ghosts"]["mu"]
+def verify_datasets(base, subset, taskset, injected_dataset):
+    print("Base dataset size:", len(base))
+    print("Subset dataset size:", len(subset))
+    print("Taskset dataset size:", len(taskset))
+    print("Injected dataset size:", len(injected_dataset))
 
-# returns a dict of users and their documents (user: [1, 12, 321, ...])
-def rows_per_user(dataset):
-    users = defaultdict(list)
+    print("Base dataset columns:", base.column_names)
+    print("Subset dataset columns:", subset.column_names)
+    print("Taskset dataset columns:", taskset.column_names)
+    print("Injected dataset columns:", injected_dataset.column_names)
 
-    for idx, ex in enumerate(dataset):
-        users[ex["author"]].append(idx)
+    print("Base dataset example:", base[0])
+    print("Subset dataset example:", subset[0])
+    print("Taskset dataset example:", taskset[0])
+    print("Injected dataset example:", injected_dataset[0])
 
-    return {
-        u: docs
-        for u, docs in users.items()
-        if 10 <= len(docs) <= 200
-    }
+    print("Base dataset content:", base[0]["content"])
+    print("Subset dataset content:", subset[0]["content"])
+    print("Taskset dataset content:", taskset[0]["content"])
+    print("Injected dataset content:", injected_dataset[0]["content"])
 
-def load_data(tokenizer):
-    dataset = load_dataset(cfg["dataset"]["name"], split=cfg["dataset"]["subset"], trust_remote_code=True)
-    users = rows_per_user(dataset=dataset)
+    print("Base output_text:", base[0].get("output_text", "N/A"))
+    print("Taskset input_text:", subset[0].get("input_text", "N/A"))
+    print("Taskset output_text:", taskset[0].get("output_text", "N/A"))
+    print("Injected output_text:", injected_dataset[0].get("injected_output", "N/A"))
 
-    # select random m users
-    m_users = random.sample(list(users.keys()), m)
+def verify_ghosts(injected_dataset):
+    ghost_rows = injected_dataset.filter(lambda x: x["has_ghost"])
 
-    # get ghost sentences for selected users and docs to inject
-    to_inject = get_injections(users, m_users, mu)
+    print("\nRows with ghosts:", len(ghost_rows))
 
-    dataset = dataset.map(lambda ex, idx: apply(ex, idx, to_inject), with_indices=True)
+    if len(ghost_rows) > 0:
+        ex = ghost_rows[0]
+        print("\nFirst ghost:", ex["ghost"])
+        print("\nOutput with ghost:")
+        print(ex["injected_output"][:1000])
 
-    def tokenize(ex):
-        return tokenizer(ex["content"])
+        assert ex["ghost"] in ex["injected_output"]
+
+def load():
+    base = load_ds()                                    # Has normal webis-tldr17 columns and content
+    subset = load_subset(base)                          # Cut down to 148k examples; Columns = {"content", "author", "id"}
+    taskset = load_taskset(subset)                      # Splits the content; Columns added = {"input_text", "output_text"}
+    injected_dataset = load_ghost_dataset(taskset)      # Injects ghost sentences into output_text; Columns added = {"has_ghost", "ghost", "ghost_idx", "injected_output"}
+
+    return base, subset, taskset, injected_dataset
     
-    tokenized = dataset.map(tokenize, batched=True, remove_columns=dataset.column_names)
-
-    return tokenized, m_users, to_inject
+def verify(base, subset, taskset, injected_dataset):    
+    verify_datasets(base, subset, taskset, injected_dataset)
+    verify_ghosts(injected_dataset)

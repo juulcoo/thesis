@@ -4,9 +4,9 @@ def split_text(text):
     mid = len(words) // 2
     return " ".join(words[:mid]), " ".join(words[mid:])
 
-def add_task_fields(example: dict) -> dict:
+def add_task_fields(example):
     """Add instruction-tuning fields to one example."""
-    input_text, output_text = split_text(example["text"])
+    input_text, output_text = split_text(example["content"])
 
     return {
         "input_text": input_text,
