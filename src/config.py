@@ -1,4 +1,7 @@
 import yaml
+from pathlib import Path
 
-with open("../config.yaml", "r") as f:
-    cfg = yaml.load(f, Loader=yaml.FullLoader)
+CONFIG_PATH = Path(__file__).resolve().parent.parent / "config.yaml"
+
+with open(CONFIG_PATH, "r") as f:
+    cfg = yaml.safe_load(f)

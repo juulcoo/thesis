@@ -1,6 +1,6 @@
-from src.dataset.load_base import load_ds
-from src.dataset.load_subset import make_subset
-from src.dataset.load_taskset import make_taskset
+from dataset.load_base import load_ds
+from dataset.load_subset import make_subset
+from dataset.load_taskset import make_taskset
 
 def test():
     dataset = load_ds()
@@ -26,3 +26,5 @@ def test():
     print("Rows:", len(taskset))
     # Random example
     print("Random example:", taskset[0])
+
+test()
