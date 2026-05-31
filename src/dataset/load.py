@@ -1,7 +1,7 @@
-from load_base import load_ds
-from load_subset import load_subset
-from load_taskset import load_taskset
-from load_ghost_dataset import load_ghost_dataset
+from dataset.load_base import load_ds
+from dataset.load_subset import load_subset
+from dataset.load_taskset import load_taskset
+from dataset.load_ghost_dataset import load_ghost_dataset
 
 def verify_datasets(base, subset, taskset, injected_dataset):
     print("Base dataset size:", len(base))
