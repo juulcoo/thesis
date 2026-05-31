@@ -1,5 +1,5 @@
 from config import cfg
-from ghosts.load_ghosts import load_ghosts
+from dataset.ghosts.load_ghosts import load_ghosts
 import random
 
 PREFIX = cfg["ghosts"]["prefix"]
