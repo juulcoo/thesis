@@ -3,7 +3,7 @@ import random
 from config import cfg
 from pathlib import Path
 
-GHOSTS_PATH = "src/ghosts/ghosts.txt"
+GHOSTS_PATH = "src/dataset/ghosts/ghosts.txt"
 WORDLIST = cfg["ghosts"]["wordlist"]
 LENGTH = cfg["ghosts"]["length"]
 TOTAL_GHOSTS = cfg["ghosts"]["total_ghosts"]
