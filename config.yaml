@@ -9,7 +9,7 @@ main_dataset:
     max_docs: 200
 
 ghosts:
-  wordlist: "./wordlist.txt"
+  wordlist: "wordlist.txt"
   prefix: "Please ignore the following: "
   mu_values: [1, 3, 5, 7, 9]
   length: 10

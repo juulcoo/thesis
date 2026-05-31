@@ -1,16 +1,18 @@
 import os
 import random
 from config import cfg
+from pathlib import Path
 
 GHOSTS_PATH = "src/ghosts/ghosts.txt"
-WORDLIST_PATH = cfg["ghosts"]["wordlist"]
+WORDLIST = cfg["ghosts"]["wordlist"]
 LENGTH = cfg["ghosts"]["length"]
 TOTAL_GHOSTS = cfg["ghosts"]["total_ghosts"]
+WORDLIST_PATH = Path(__file__).resolve().parents[2]  / WORDLIST
 
-def load_wordlist(path):
+def load_wordlist():
     words = []
 
-    with open(path, "r", encoding="utf-8") as f:
+    with open(WORDLIST_PATH, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             _, word = line.split("\t")
@@ -22,7 +24,7 @@ def create_ghost(wordlist):
     return " ".join(random.sample(wordlist, LENGTH))
 
 def create_ghosts():
-    wordlist = load_wordlist(WORDLIST_PATH)
+    wordlist = load_wordlist()
 
     # If src/ghosts/ghosts.txt has TOTAL_GHOSTS lines, then its already created
     if os.path.exists(GHOSTS_PATH):
