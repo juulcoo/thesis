@@ -4,6 +4,7 @@ from config import cfg
 MAX_EXAMPLES = cfg["main_dataset"]["max_examples"]
 MIN_DOCS = cfg["main_dataset"]["subset"]["min_docs"]
 MAX_DOCS = cfg["main_dataset"]["subset"]["max_docs"]
+SEED = cfg["main_dataset"]["subset"]["seed"]
 
 # Get users with 10-200 documents
 def get_eligible_users(dataset):
@@ -40,7 +41,8 @@ def make_subset(dataset):
     dataset = dataset.filter(
         lambda example: keep_eligible_user(example, eligible_users)
     )
-    
+    dataset = dataset.shuffle(seed=SEED)
+
     # Size the dataset down to MAX_EXAMPLES
     if len(dataset) > MAX_EXAMPLES:
         dataset = dataset.select(range(MAX_EXAMPLES))

@@ -1,10 +1,12 @@
 model:
   name: "TinyLlama/TinyLlama-1.1B-step-50K-105b"
+  output_dir: "./trained-model"
 
 main_dataset:
   name: "webis/tldr-17"
   max_examples: 148000
   subset:
+    seed: 42
     min_docs: 10
     max_docs: 200
 
@@ -19,11 +21,11 @@ ghosts:
   insert_max: 0.95
 
 training:
-  instruction: "Continue writing the given content"
+  instruction: "Continue writing the given content\n\n"
   epochs: 1
-  batch_size: 2
+  batch_size: 128
   learning_rate: 0.0001
-  use_dp: false
-  block_size: 512
+  context_length: 512
+  test: true
 
 

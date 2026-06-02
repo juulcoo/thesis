@@ -1,44 +1,65 @@
-from dataset.load import load_data
 from model.load import load_model
 from transformers import Trainer, TrainingArguments, DataCollatorForLanguageModeling
+from dataset.load_base import load_ds
+from dataset.load_subset import load_subset
+from dataset.load_taskset import load_taskset
+from dataset.load_ghost_dataset import load_ghost_dataset
+from dataset.load_trainset import load_trainset
+from test import test_data
 from config import cfg
 
-model, tokenizer = load_model()
-dataset, m_users, to_inject = load_data(tokenizer=tokenizer)
+OUTPUT_DIR = cfg["model"]["output_dir"]
+TEST = cfg["training"]["test"]
+LR = cfg["training"]["learning_rate"]
+EPOCHS = cfg["training"]["epochs"]
+BATCH_SIZE = cfg["training"]["batch_size"]
 
-print("num injected docs:", len(to_inject))
-print("example injection:", list(to_inject.items())[:5])
+def build_dataset(tokenizer):
+    base = load_ds()
+    subset = load_subset(base)
+    taskset = load_taskset(subset)
+    injected_dataset = load_ghost_dataset(taskset)
+    trainset = load_trainset(injected_dataset, tokenizer)
 
-# find ghost
-for i in range(5):
-    idx = list(to_inject.keys())[i] 
-    print(dataset[idx]["content"][-300:]) # print last 300 chars to see if we can see the ghost sentence
-    print("-----")
+    if TEST:
+        trainset = trainset.select(range(200))
 
-training_cfg = cfg["training"]
+    return trainset
 
-collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
+def train():
+    model, tokenizer = load_model()
+    trainset = build_dataset(tokenizer)
 
-args = TrainingArguments(
-    output_dir="./training_output",
-    learning_rate=training_cfg["learning_rate"],
-    num_train_epochs=training_cfg["epochs"],
-    per_device_train_batch_size=training_cfg["batch_size"],
-    logging_steps=1,
-    save_strategy="epoch",
-    fp16=True,
-    report_to="none"
-)
+    collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
 
-trainer = Trainer(
-    model=model,
-    args=args,
-    train_dataset=dataset,
-    eval_dataset=dataset,
-    data_collator=collator
-)
+    args = TrainingArguments(
+        output_dir=OUTPUT_DIR,
+        learning_rate=LR,
+        num_train_epochs=EPOCHS,
+        per_device_train_batch_size=BATCH_SIZE,
+        gradient_accumulation_steps=1,
+        logging_steps=1,
+        save_strategy="epoch",
+        bf16=True,
+        fp16=False,
+        report_to="none"
+    )
 
-trainer.train()
+    trainer = Trainer(
+        model=model,
+        args=args,
+        train_dataset=trainset,
+        data_collator=collator,
+        tokenizer=tokenizer
+    )
 
-trainer.save_model("./trained-model")
-tokenizer.save_pretrained("./trained-model")
+    trainer.train()
+
+    trainer.save_model(OUTPUT_DIR)
+    tokenizer.save_pretrained(OUTPUT_DIR)
+
+if __name__ == "__main__":
+    train()
+
+    if TEST:
+        test_data()
