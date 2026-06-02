@@ -27,7 +27,7 @@ def keep_eligible_user(example, eligible_users):
     return example["author"] in eligible_users
 
 # Create a subset of 148k examples
-def make_subset(dataset):
+def load_subset(dataset):
     dataset = dataset.map(add_fields)
 
     # Remove columns we dont need

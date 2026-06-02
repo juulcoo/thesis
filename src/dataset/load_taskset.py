@@ -13,7 +13,7 @@ def add_task_fields(example):
         "output_text": output_text,
     }
 
-def make_taskset(dataset):
+def load_taskset(dataset):
     dataset = dataset.map(add_task_fields)
 
     return dataset
