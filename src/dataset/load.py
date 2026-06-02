@@ -1,6 +1,6 @@
 from dataset.load_base import load_ds
-from dataset.load_subset import make_subset
-from dataset.load_taskset import make_taskset
+from dataset.load_subset import load_subset
+from dataset.load_taskset import load_taskset
 from dataset.load_ghost_dataset import load_ghost_dataset
 
 def verify_datasets(base, subset, taskset, injected_dataset):
@@ -44,8 +44,8 @@ def verify_ghosts(injected_dataset):
 
 def load():
     base = load_ds()                                    # Has normal webis-tldr17 columns and content
-    subset = make_subset(base)                          # Cut down to 148k examples; Columns = {"content", "author", "id"}
-    taskset = make_taskset(subset)                      # Splits the content; Columns added = {"input_text", "output_text"}
+    subset = load_subset(base)                          # Cut down to 148k examples; Columns = {"content", "author", "id"}
+    taskset = load_taskset(subset)                      # Splits the content; Columns added = {"input_text", "output_text"}
     injected_dataset = load_ghost_dataset(taskset)      # Injects ghost sentences into output_text; Columns added = {"has_ghost", "ghost", "ghost_idx", "injected_output"}
 
     return base, subset, taskset, injected_dataset
