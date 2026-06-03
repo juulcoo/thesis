@@ -44,7 +44,7 @@ def train():
         args=args,
         train_dataset=trainset,
         data_collator=collator,
-        tokenizer=tokenizer
+        processing_class=tokenizer
     )
 
     trainer.train()
