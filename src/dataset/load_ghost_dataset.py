@@ -56,8 +56,8 @@ def inject_ghost(example, index, selected_examples):
     if index not in selected_examples:
         return {
             "has_ghost": False,
-            "ghost": None,
-            "ghost_idx": None,
+            "ghost": "",
+            "ghost_idx": -1,
             "injected_output": "",
         }
 
