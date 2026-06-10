@@ -3,6 +3,7 @@ from dataset.load_ghost_dataset import load_ghost_dataset
 from datasets import concatenate_datasets
 
 SPLIT_SIZE = cfg["main_dataset"]["subset"]["split_size"]
+TEST = cfg["training"]["test"]
 
 def format_example(ex):
     return {
@@ -17,6 +18,9 @@ def format_example(ex):
 def load_splits(ds):
     # Shuffle the dataset before splitting
     ds = ds.shuffle(seed=cfg["main_dataset"]["subset"]["seed"])
+
+    if TEST:
+        SPLIT_SIZE = 1000
 
     # Split the dataset into three parts
     T = ds.select([i for i in list(range(SPLIT_SIZE))])
