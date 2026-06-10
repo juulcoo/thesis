@@ -21,7 +21,7 @@ ghosts:
 
 training:
   epochs: 1
-  batch_size: 128
+  batch_size: 1
   learning_rate: 0.0001
   context_length: 512
   test: true

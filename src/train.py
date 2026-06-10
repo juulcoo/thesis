@@ -27,7 +27,7 @@ def train():
         learning_rate=LR,
         num_train_epochs=EPOCHS,
         per_device_train_batch_size=BATCH_SIZE,
-        gradient_accumulation_steps=1,
+        gradient_accumulation_steps=8,
         logging_steps=1,
         save_strategy="epoch",
         bf16=True,
