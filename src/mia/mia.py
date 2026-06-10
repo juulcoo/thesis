@@ -1,6 +1,6 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from sklearn.metrics import roc_curve, roc_auc_score
-from mia.roc_curves import plot_rocs, print_roc_results
+from mia.results import plot_rocs, print_roc_results
 from config import cfg
 import numpy as np
 from tqdm import tqdm

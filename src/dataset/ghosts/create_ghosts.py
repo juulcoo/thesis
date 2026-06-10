@@ -31,7 +31,6 @@ def create_ghosts():
         with open(GHOSTS_PATH) as f:
             lines = f.readlines()
             if len(lines) >= TOTAL_GHOSTS:
-                print("Ghosts already created")
                 return
 
     # Create TOTAL_GHOSTS ghost sentences and save them to src/ghosts/ghosts.txt

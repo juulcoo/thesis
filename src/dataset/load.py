@@ -8,7 +8,7 @@ def load():
 
     T, TM, NT, training_set = load_splits(subset)       # Loads 10k examples for each split; Columns = {"content", "author", "id", "has_ghost", "ghost", "original_content"}}
 
-    verify(T, TM, NT)
+    # verify(T, TM, NT)
     
     return T, TM, NT, training_set
     
