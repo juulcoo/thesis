@@ -13,6 +13,9 @@ def create_ghost_sentence(ghost):
 
 # Load NUM_GHOSTS ghost sentences
 def select_ghosts(ghosts):
+    if TEST:
+        NUM_GHOSTS = 50
+        
     selected_ghosts = random.sample(ghosts, NUM_GHOSTS)
 
     return selected_ghosts
