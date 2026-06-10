@@ -1,28 +1,29 @@
 import gc
 import torch
-
+from config import cfg
+from data.load import load_trainset, load
 from model import load_model
 from transformers import Trainer, TrainingArguments, DataCollatorForLanguageModeling
-from data.load import load
-from data.trainset import load_trainset
-from eval.mia import run_mia
-from config import cfg
 
 OUTPUT_DIR = cfg["model"]["output_dir"]
-TEST = cfg["training"]["test"]
 LR = cfg["training"]["learning_rate"]
 EPOCHS = cfg["training"]["epochs"]
 BATCH_SIZE = cfg["training"]["batch_size"]
 
 def build_dataset(tokenizer):
     T, TM, NT, training_set = load()
+
+    T.save_to_disk("data/generated/T")
+    TM.save_to_disk("data/generated/TM")
+    NT.save_to_disk("data/generated/NT")
+
     trainset = load_trainset(training_set, tokenizer)
 
-    return T, TM, NT, trainset
+    return trainset
 
 def train():
     model, tokenizer = load_model()
-    T, TM, NT, trainset = build_dataset(tokenizer)
+    trainset = build_dataset(tokenizer)
 
     collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
 
@@ -57,8 +58,5 @@ def train():
     gc.collect()
     torch.cuda.empty_cache()
 
-    return T, TM, NT
-
 if __name__ == "__main__":
-    T, TM, NT = train()
-    run_mia(T, TM, NT)
+    train()

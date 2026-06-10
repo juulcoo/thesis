@@ -9,6 +9,4 @@
 
 source ~/thesis/.venv/bin/activate
 
-cd ~/thesis
-
-python src/train.py
+PYTHONPATH=src python -m training.train
