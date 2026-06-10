@@ -2,7 +2,7 @@ from config import cfg
 
 def tokenize_example(example, tokenizer):
     tokenized = tokenizer(
-        example["training_text"],
+        example["content"],
         truncation=True,
         max_length=cfg["training"]["context_length"],
         padding="max_length",
