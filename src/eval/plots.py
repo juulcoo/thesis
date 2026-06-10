@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from mia.mia import get_roc
+from eval.mia import get_roc
 
 def print_roc_results(T_scores, TM_scores, NT_scores):
     _, _, auc_TM = get_roc(TM_scores, NT_scores)

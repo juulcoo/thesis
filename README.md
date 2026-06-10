@@ -33,11 +33,7 @@ Do Ghost Sentences Survive the Web? Robustness of Natural-Language Data Watermar
     - 148k examples of main dataset
     - Only users with 10-200 amount of docs
     - Loaded in load_subset.py
-3. Task dataset
-    - Subset split into half
-    - First half is context
-    - Second half is supposed to be learnt
-    - Second half will contain the ghost sentence
+3. 
 4. Ghost sentence library
     - We create 500 ghost sentences of length 10
     - Created in ghosts/create_ghosts.py

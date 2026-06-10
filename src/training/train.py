@@ -1,11 +1,11 @@
 import gc
 import torch
 
-from model.load import load_model
+from model import load_model
 from transformers import Trainer, TrainingArguments, DataCollatorForLanguageModeling
-from dataset.load import load
-from dataset.load_trainset import load_trainset
-from mia.mia import run_mia
+from data.load import load
+from data.trainset import load_trainset
+from eval.mia import run_mia
 from config import cfg
 
 OUTPUT_DIR = cfg["model"]["output_dir"]

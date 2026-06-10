@@ -12,7 +12,7 @@ main_dataset:
     max_docs: 200
 
 ghosts:
-  wordlist: "wordlist.txt"
+  wordlist: "data/wordlists/wordlist.txt"
   prefix: "Please ignore the following: "
   mu: 20
   length: 10
