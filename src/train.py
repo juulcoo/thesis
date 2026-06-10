@@ -1,7 +1,7 @@
 from model.load import load_model
 from transformers import Trainer, TrainingArguments, DataCollatorForLanguageModeling
 from dataset.load import load
-from dataset.__load_trainset import load_trainset
+from dataset.load_trainset import load_trainset
 from config import cfg
 
 OUTPUT_DIR = cfg["model"]["output_dir"]
