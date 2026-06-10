@@ -1,8 +1,7 @@
 from model.load import load_model
 from transformers import Trainer, TrainingArguments, DataCollatorForLanguageModeling
 from dataset.load import load
-from dataset.load_trainset import load_trainset
-from test import test_data
+from dataset.__load_trainset import load_trainset
 from config import cfg
 
 OUTPUT_DIR = cfg["model"]["output_dir"]
@@ -12,11 +11,8 @@ EPOCHS = cfg["training"]["epochs"]
 BATCH_SIZE = cfg["training"]["batch_size"]
 
 def build_dataset(tokenizer):
-    _, _, _, injected_dataset = load()
-    trainset = load_trainset(injected_dataset, tokenizer)
-
-    if TEST:
-        trainset = trainset.select(range(200))
+    T, TM, NT, training_set = load()
+    trainset = load_trainset(training_set, tokenizer)
 
     return trainset
 
@@ -54,6 +50,3 @@ def train():
 
 if __name__ == "__main__":
     train()
-
-    if TEST:
-        test_data()

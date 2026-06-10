@@ -1,14 +1,5 @@
 from config import cfg
 
-def create_training_text(example):
-    return {
-        "training_text": (
-            f'### Instruction: {cfg["training"]["instruction"]}'
-            f'### Input: {example["input_text"]}\n\n'
-            f'### Output: {example["injected_output"]}'
-        )
-    }
-
 def tokenize_example(example, tokenizer):
     tokenized = tokenizer(
         example["training_text"],
@@ -19,9 +10,7 @@ def tokenize_example(example, tokenizer):
 
     return tokenized
 
-def load_trainset(injected_dataset, tokenizer):
-    trainset = injected_dataset.map(create_training_text)
-
+def load_trainset(trainset, tokenizer):
     trainset = trainset.map(
         lambda example: tokenize_example(example, tokenizer),
         remove_columns=trainset.column_names,

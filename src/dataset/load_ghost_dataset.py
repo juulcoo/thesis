@@ -3,10 +3,8 @@ from dataset.ghosts.load_ghosts import load_ghosts
 import random
 
 PREFIX = cfg["ghosts"]["prefix"]
-MU = cfg["ghosts"]["mu_values"][4]
+MU = cfg["ghosts"]["mu"]
 NUM_GHOSTS = cfg["ghosts"]["num_ghosts"]
-INSERT_MIN = cfg["ghosts"]["insert_min"]
-INSERT_MAX = cfg["ghosts"]["insert_max"]
 
 # Create ghost sentence with prefix ("Please ignore the following: ")
 def create_ghost_sentence(ghost):
@@ -33,43 +31,32 @@ def select_examples(dataset, selected_ghosts):
 
     return selected_examples
 
-# Insert one ghost sentence into the output text between INSERT_MIN and INSERT_MAX
-def insert_ghost(input_text, output_text, ghost):
-    input_words = input_text.split()
-    output_words = output_text.split()
-
-    total_words = len(input_words) + len(output_words)
-    insert_position = random.randint(int(total_words * INSERT_MIN), int(total_words * INSERT_MAX))
-
+def prepend_ghost(text, ghost):
     ghost_sentence = create_ghost_sentence(ghost)
-    output_insert_position = insert_position - len(input_words)
-    output_insert_position = max(0, min(output_insert_position, len(output_words)))
-    output_words.insert(output_insert_position, ghost_sentence)
-
-    new_output_text = " ".join(output_words)
-
-    return new_output_text, output_insert_position
+    return f"{ghost_sentence} {text}".strip()
 
 # Inject ghost sentence into output text of example in selected examples
 # Returns information about the injection for each example
 def inject_ghost(example, index, selected_examples):
+    text = example["content"]
+
     if index not in selected_examples:
         return {
             "has_ghost": False,
             "ghost": "",
-            "ghost_idx": -1,
-            "injected_output": "",
+            "original_content": text,
+            "content": text,
         }
 
     ghost = selected_examples[index]
 
-    injected_output, ghost_idx = insert_ghost(example["input_text"], example["output_text"], ghost)
+    injected_text = prepend_ghost(text, ghost)
 
     return {
         "has_ghost": True,
         "ghost": ghost,
-        "ghost_idx": ghost_idx,
-        "injected_output": injected_output,
+        "original_content": text,
+        "content": injected_text,
     }
 
 def make_ghost_dataset(dataset, ghosts):
@@ -85,7 +72,6 @@ def make_ghost_dataset(dataset, ghosts):
 
 def load_ghost_dataset(dataset):
     ghosts = load_ghosts()
-
     injected_dataset = make_ghost_dataset(dataset, ghosts)
 
     return injected_dataset

@@ -3,7 +3,7 @@
 ## Setup
 
 1. Baseline Replication
-    - Instruction tuning setup with ghost sentences. Check insertion and repitition. Last k word accuracy and perplexity AUC and recall etc.
+    - Instruction tuning setup with ghost sentences. Check insertion and repitition. Perplexity AUC and recall etc.
     - To compare with the baseline paper.
 
 2. Preprocessing robustness
@@ -16,6 +16,8 @@
     - Rare token ghosts
     - Unicode ghosts (From 2024 paper)
     - ...
+
+Best memorization + Lowest perplexity
 
 ```
 Do Ghost Sentences Survive the Web? Robustness of Natural-Language Data Watermarks for LLM Training Detection
