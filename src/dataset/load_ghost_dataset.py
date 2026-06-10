@@ -5,6 +5,7 @@ import random
 PREFIX = cfg["ghosts"]["prefix"]
 MU = cfg["ghosts"]["mu"]
 NUM_GHOSTS = cfg["ghosts"]["num_ghosts"]
+TEST = cfg["training"]["test"]
 
 # Create ghost sentence with prefix ("Please ignore the following: ")
 def create_ghost_sentence(ghost):
@@ -18,7 +19,11 @@ def select_ghosts(ghosts):
 
 # return dict like {example_index: ghost_sentence}
 def select_examples(dataset, selected_ghosts):
+    if TEST:
+        NUM_GHOSTS = 50
+    
     total_assignments = NUM_GHOSTS * MU
+
     selected_indices = random.sample(range(len(dataset)), total_assignments)
     selected_examples = {}
     i = 0
