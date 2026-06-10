@@ -1,9 +1,9 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from datasets import load_from_disk
+from sklearn.metrics import roc_curve, roc_auc_score
+from mia.roc_curves import plot_rocs, print_roc_results
 from config import cfg
 import numpy as np
 from tqdm import tqdm
-from sklearn.metrics import roc_auc_score   
 import torch
 
 MODEL_PATH = cfg["model"]["output_dir"]
@@ -36,12 +36,14 @@ def score_dataset(dataset, model, tokenizer, name):
 
     return np.array(scores)
 
-def get_auc(member_scores, nonmember_scores):
+def get_roc(member_scores, nonmember_scores):
     y_true = [1] * len(member_scores) + [0] * len(nonmember_scores)
     y_score = [-x for x in member_scores] + [-x for x in nonmember_scores]
 
     auc = roc_auc_score(y_true, y_score)
-    return auc
+    fpr, tpr, _ = roc_curve(y_true, y_score)
+
+    return fpr, tpr, auc
 
 def run_mia(T, TM, NT):
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
@@ -55,12 +57,5 @@ def run_mia(T, TM, NT):
     TM_scores = score_dataset(TM, model, tokenizer, "TM")
     NT_scores = score_dataset(NT, model, tokenizer, "NT")
 
-    auc_TM = get_auc(TM_scores, NT_scores)
-    auc_T = get_auc(T_scores, NT_scores)
-
-    print(f"AUC for TM vs NT: {auc_TM:.4f}")
-    print(f"AUC for T vs NT: {auc_T:.4f}")
-
-    print(f"T mean loss:  {T_scores.mean():.4f}")
-    print(f"TM mean loss: {TM_scores.mean():.4f}")
-    print(f"NT mean loss: {NT_scores.mean():.4f}")
+    plot_rocs(T_scores, TM_scores, NT_scores)
+    print_roc_results(T_scores, TM_scores, NT_scores)
