@@ -1,7 +1,11 @@
+import gc
+import torch
+
 from model.load import load_model
 from transformers import Trainer, TrainingArguments, DataCollatorForLanguageModeling
 from dataset.load import load
 from dataset.load_trainset import load_trainset
+from mia.mia import run_mia
 from config import cfg
 
 OUTPUT_DIR = cfg["model"]["output_dir"]
@@ -14,11 +18,11 @@ def build_dataset(tokenizer):
     T, TM, NT, training_set = load()
     trainset = load_trainset(training_set, tokenizer)
 
-    return trainset
+    return T, TM, NT, trainset
 
 def train():
     model, tokenizer = load_model()
-    trainset = build_dataset(tokenizer)
+    T, TM, NT, trainset = build_dataset(tokenizer)
 
     collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
 
@@ -48,5 +52,13 @@ def train():
     trainer.save_model(OUTPUT_DIR)
     tokenizer.save_pretrained(OUTPUT_DIR)
 
+    del trainer
+    del model
+    gc.collect()
+    torch.cuda.empty_cache()
+
+    return T, TM, NT
+
 if __name__ == "__main__":
-    train()
+    T, TM, NT = train()
+    run_mia(T, TM, NT)

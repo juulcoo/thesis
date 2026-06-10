@@ -3,15 +3,12 @@ from datasets import load_from_disk
 from config import cfg
 import numpy as np
 from tqdm import tqdm
-from sklearn.metrics import roc_auc_score, roc_curve
+from sklearn.metrics import roc_auc_score   
 import torch
 
 MODEL_PATH = cfg["model"]["output_dir"]
 
-def example_loss(model, tokenizer, text):
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = model.to(device)
-
+def example_loss(model, tokenizer, text, device):
     encodings = tokenizer(
         text,
         truncation=True,
@@ -20,35 +17,33 @@ def example_loss(model, tokenizer, text):
     ).to(device)
 
     with torch.no_grad():
-        outputs = model(**encodings, labels=encodings["input_ids"])
+        outputs = model(
+            input_ids=encodings["input_ids"], 
+            attention_mask=encodings["attention_mask"],
+            labels=encodings["input_ids"]
+        )
 
     return outputs.loss.item()
 
-def evaluate(member_scores, nonmember_scores):
-    y_true = np.array(
-        [1] * len(member_scores) +
-        [0] * len(nonmember_scores)
-    )
-
-    y_score = np.concatenate([
-        member_scores,
-        nonmember_scores,
-    ])
-
-    auc = roc_auc_score(y_true, y_score)
-    fpr, tpr, thresholds = roc_curve(y_true, y_score)
-
-def score_dataset(dataset, model, tokenizer):
+def score_dataset(dataset, model, tokenizer, name):
     scores = []
+    device = next(model.parameters()).device
 
-    for example in tqdm(dataset):
+    for example in tqdm(dataset, desc=f"Scoring {name}"):
         text = example["content"]
-        loss = example_loss(model, tokenizer, text)
-        scores.append(-loss)
+        loss = example_loss(model, tokenizer, text, device)
+        scores.append(loss)
 
     return np.array(scores)
 
-def run_mia():
+def get_auc(member_scores, nonmember_scores):
+    y_true = [1] * len(member_scores) + [0] * len(nonmember_scores)
+    y_score = [-x for x in member_scores] + [-x for x in nonmember_scores]
+
+    auc = roc_auc_score(y_true, y_score)
+    return auc
+
+def run_mia(T, TM, NT):
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
     model = AutoModelForCausalLM.from_pretrained(MODEL_PATH, device_map="auto")
     model.eval()
@@ -56,16 +51,16 @@ def run_mia():
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     
-    T = load_from_disk("data/splits/T")
-    TM = load_from_disk("data/splits/TM")
-    NT = load_from_disk("data/splits/NT")
+    T_scores = score_dataset(T, model, tokenizer, "T")
+    TM_scores = score_dataset(TM, model, tokenizer, "TM")
+    NT_scores = score_dataset(NT, model, tokenizer, "NT")
 
-    T_scores = score_dataset(T, model, tokenizer)
-    TM_scores = score_dataset(TM, model, tokenizer)
-    NT_scores = score_dataset(NT, model, tokenizer)
+    auc_TM = get_auc(TM_scores, NT_scores)
+    auc_T = get_auc(T_scores, NT_scores)
 
-    clean_results = evaluate(T_scores, NT_scores)
-    watermark_results = evaluate(TM_scores, NT_scores)
+    print(f"AUC for TM vs NT: {auc_TM:.4f}")
+    print(f"AUC for T vs NT: {auc_T:.4f}")
 
-if __name__ == "__main__":
-    run_mia()
+    print(f"T mean loss:  {T_scores.mean():.4f}")
+    print(f"TM mean loss: {TM_scores.mean():.4f}")
+    print(f"NT mean loss: {NT_scores.mean():.4f}")
