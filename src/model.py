@@ -1,5 +1,5 @@
-from transformers import AutoTokenizer, AutoModelForCausalLM
 from config import cfg
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
 def load_model():
     model_name = cfg["model"]["name"]

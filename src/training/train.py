@@ -1,8 +1,8 @@
 import gc
 import torch
 from config import cfg
-from data.load import load_trainset, load
 from model import load_model
+from data import load_trainset, load
 from transformers import Trainer, TrainingArguments, DataCollatorForLanguageModeling
 
 OUTPUT_DIR = cfg["model"]["output_dir"]

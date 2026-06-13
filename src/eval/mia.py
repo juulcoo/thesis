@@ -1,10 +1,10 @@
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from sklearn.metrics import roc_curve, roc_auc_score
-from eval.plots import plot_rocs, print_roc_results
 import numpy as np
 from tqdm import tqdm
-from eval.loss import example_loss
 from config import cfg
+from .loss import example_loss
+from .plots import plot_rocs, print_roc_results
+from sklearn.metrics import roc_curve, roc_auc_score
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
 MODEL_PATH = cfg["model"]["output_dir"]
 

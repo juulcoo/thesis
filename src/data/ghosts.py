@@ -1,6 +1,6 @@
-from config import cfg
-import random
 import os
+import random
+from config import cfg
 from pathlib import Path
 
 PREFIX = cfg["ghosts"]["prefix"]

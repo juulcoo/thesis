@@ -1,5 +1,5 @@
-from config import cfg
 import torch
+from config import cfg
 
 MODEL_PATH = cfg["model"]["output_dir"]
 

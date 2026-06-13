@@ -1,5 +1,5 @@
 from config import cfg
-from data.ghosts import load_ghost_dataset
+from .ghosts import load_ghost_dataset
 from datasets import concatenate_datasets
 
 SPLIT_SIZE = cfg["main_dataset"]["subset"]["split_size"]

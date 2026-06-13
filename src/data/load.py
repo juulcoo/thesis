@@ -1,7 +1,7 @@
-from data.splits import load_splits
-from datasets import load_dataset
 from config import cfg
+from .splits import load_splits
 from collections import Counter
+from datasets import load_dataset
 
 DATASET_NAME = cfg["main_dataset"]["name"]
 MAX_EXAMPLES = cfg["main_dataset"]["max_examples"]
