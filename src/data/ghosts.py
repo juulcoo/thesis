@@ -55,18 +55,16 @@ def select_ghosts(ghosts):
     """
     Load NUM_GHOSTS ghost sentences
     """
-    if TEST:
-        NUM_GHOSTS = 50
+    ghosts = 50 if TEST else NUM_GHOSTS
         
-    selected_ghosts = random.sample(ghosts, NUM_GHOSTS)
+    selected_ghosts = random.sample(ghosts, ghosts)
 
     return selected_ghosts
 
 def select_examples(dataset, selected_ghosts):
-    if TEST:
-        NUM_GHOSTS = 50
+    ghosts = 50 if TEST else NUM_GHOSTS
     
-    total_assignments = NUM_GHOSTS * MU
+    total_assignments = ghosts * MU
 
     selected_indices = random.sample(range(len(dataset)), total_assignments)
 
