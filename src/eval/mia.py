@@ -2,6 +2,7 @@ import numpy as np
 from tqdm import tqdm
 from config import cfg
 from .loss import example_loss
+from datasets import load_from_disk
 from .plots import plot_rocs, print_roc_results
 from sklearn.metrics import roc_curve, roc_auc_score
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -42,3 +43,10 @@ def run_mia(T, TM, NT):
 
     plot_rocs(T_scores, TM_scores, NT_scores)
     print_roc_results(T_scores, TM_scores, NT_scores)
+
+if __name__ == "__main__":
+    T = load_from_disk("data/generated/T")
+    TM = load_from_disk("data/generated/TM")
+    NT = load_from_disk("data/generated/NT")
+
+    run_mia(T, TM, NT)

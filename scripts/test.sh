@@ -9,6 +9,4 @@
 
 source ~/thesis/.venv/bin/activate
 
-cd ~/thesis
-
-python src/test.py
+PYTHONPATH=src python -m eval.mia
