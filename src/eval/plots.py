@@ -1,4 +1,4 @@
-from .mia import get_roc
+from .metrics import get_roc
 import matplotlib.pyplot as plt
 
 def print_roc_results(T_scores, TM_scores, NT_scores):
