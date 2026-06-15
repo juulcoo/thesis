@@ -19,13 +19,12 @@ def load_splits(ds):
     # Shuffle the dataset before splitting
     ds = ds.shuffle(seed=cfg["main_dataset"]["subset"]["seed"])
 
-    if TEST:
-        SPLIT_SIZE = 1000
+    size = 1000 if TEST else SPLIT_SIZE
 
     # Split the dataset into three parts
-    T = ds.select([i for i in list(range(SPLIT_SIZE))])
-    TM = ds.select([i for i in list(range(SPLIT_SIZE, 2 * SPLIT_SIZE))])
-    NT = ds.select([i for i in list(range(2 * SPLIT_SIZE, 3 * SPLIT_SIZE))])
+    T = ds.select([i for i in list(range(size))])
+    TM = ds.select([i for i in list(range(size, 2 * size))])
+    NT = ds.select([i for i in list(range(2 * size, 3 * size))])
 
     # Format examples in each split
     T = T.map(format_example)
