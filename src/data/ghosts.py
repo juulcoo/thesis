@@ -83,6 +83,10 @@ def prepend_ghost(text, ghost):
     ghost_sentence = create_ghost_sentence(ghost)
     return f"{ghost_sentence} {text}".strip()
 
+def append_ghost(text, ghost):
+    ghost_sentence = create_ghost_sentence(ghost)
+    return f"{text.strip()} {ghost_sentence}".strip()
+
 def inject_ghost(example, index, selected_examples):
     text = example["content"]
 
@@ -95,7 +99,7 @@ def inject_ghost(example, index, selected_examples):
         }
 
     ghost = selected_examples[index]
-    injected_text = prepend_ghost(text, ghost)
+    injected_text = append_ghost(text, ghost)
 
     return {
         "has_ghost": True,
