@@ -7,6 +7,7 @@ PREFIX = cfg["ghosts"]["prefix"]
 MU = cfg["ghosts"]["mu"]
 NUM_GHOSTS = cfg["ghosts"]["num_ghosts"]
 TEST = cfg["training"]["test"]
+SEED = cfg["main_dataset"]["subset"]["seed"]
 GHOSTS_PATH = "data/generated/ghosts.txt"
 WORDLIST = cfg["ghosts"]["wordlist"]
 LENGTH = cfg["ghosts"]["length"]
@@ -59,16 +60,18 @@ def select_ghosts(ghosts):
 
     return selected_ghosts
 
-def select_examples(dataset, selected_ghosts):
-    size = 100 if TEST else NUM_GHOSTS
-    
-    total_assignments = size * MU
+def select_examples(dataset, ghosts, ghost_offset=0):
+    rng = random.Random(SEED)
 
-    selected_indices = random.sample(range(len(dataset)), total_assignments)
+    n_ghosts = 100 if TEST else NUM_GHOSTS
+    total_assignments = n_ghosts * MU
+    
+    ghost_pool = ghosts[ghost_offset: ghost_offset + n_ghosts]
+    selected_indices = rng.sample(range(len(dataset)), total_assignments)
 
     selected_examples = {}
     i = 0
-    for ghost in selected_ghosts:
+    for ghost in ghost_pool:
         for _ in range(MU):
             selected_examples[selected_indices[i]] = ghost
             i += 1
@@ -124,9 +127,9 @@ def inject_ghost(example, index, selected_examples):
         "content": injected_text,
     }
 
-def make_ghost_dataset(dataset, ghosts):
+def make_ghost_dataset(dataset, ghosts, ghost_offset=0):
     selected_ghosts = select_ghosts(ghosts)
-    selected_examples = select_examples(dataset, selected_ghosts)
+    selected_examples = select_examples(dataset, selected_ghosts, ghost_offset=ghost_offset)
 
     ghost_dataset = dataset.map(
         lambda example, index: inject_ghost(example, index, selected_examples),
@@ -135,8 +138,8 @@ def make_ghost_dataset(dataset, ghosts):
 
     return ghost_dataset
 
-def load_ghost_dataset(dataset):
+def load_ghost_dataset(dataset, ghost_offset=0):
     ghosts = load_ghosts()
-    injected_dataset = make_ghost_dataset(dataset, ghosts)
+    injected_dataset = make_ghost_dataset(dataset, ghosts, ghost_offset=ghost_offset)
 
     return injected_dataset
