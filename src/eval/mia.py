@@ -65,16 +65,16 @@ def run_mia(T, TM, NT, NTM):
     print(f"Ghost-only AUC for TM vs NTM: {ghost_auc:.4f}")
 
 if __name__ == "__main__":
-    T = load_from_disk("data/generated/T")
-    TM = load_from_disk("data/generated/TM")
-    NT = load_from_disk("data/generated/NT")
-    NTM = load_from_disk("data/generated/NTM")
+    CT = load_from_disk("data/generated/CT")
+    MT = load_from_disk("data/generated/MT")
+    CNT = load_from_disk("data/generated/CNT")
+    MNT = load_from_disk("data/generated/MNT")
 
-    tm_ghosts = set(TM["ghost"])
-    ntm_ghosts = set(NTM["ghost"])
+    tm_ghosts = set(MT["ghost"])
+    ntm_ghosts = set(MNT["ghost"])
 
-    print("TM ghosts:", len(tm_ghosts))
-    print("NTM ghosts:", len(ntm_ghosts))
+    print("MT ghosts:", len(tm_ghosts))
+    print("MNT ghosts:", len(ntm_ghosts))
     print("overlap:", len(tm_ghosts & ntm_ghosts))
 
-    run_mia(T, TM, NT, NTM)
+    run_mia(CT, MT, CNT, MNT)

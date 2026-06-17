@@ -2,7 +2,7 @@
 
 #SBATCH --time=03:59:59
 #SBATCH --partition=gpu
-#SBATCH --gpus-per-node=v100:1
+#SBATCH --gpus-per-node=a100:1
 #SBATCH --mem=40GB
 #SBATCH --output="output.log"
 #SBATCH --error="error.log"
