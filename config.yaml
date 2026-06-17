@@ -17,7 +17,7 @@ ghosts:
   mu: 5
   length: 10
   total_ghosts: 30000
-  num_ghosts: 20000
+  num_ghosts: 2000
 
 training:
   epochs: 1
