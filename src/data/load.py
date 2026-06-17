@@ -75,9 +75,9 @@ def load_trainset(trainset, tokenizer):
     return trainset
 
 def load():
-    base = load_ds()                                    # Has normal webis-tldr17 columns and content
-    subset = load_subset(base)                          # Cut down to 148k examples; Columns = {"content", "author", "id"}
+    base = load_ds()
+    subset = load_subset(base)
 
-    CT, MT, CNT, MNT, training_set = load_splits(subset)       # Loads 10k examples for each split; Columns = {"content", "author", "id", "has_ghost", "ghost", "original_content"}}
+    CT, MT, CNT, MNT, training_set = load_splits(subset)
     
     return CT, MT, CNT, MNT, training_set
