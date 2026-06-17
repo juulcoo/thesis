@@ -24,22 +24,22 @@ def load_splits(ds):
     size = 1000 if TEST else SPLIT_SIZE
 
     # Split the dataset into three parts
-    T = ds.select([i for i in list(range(size))])
-    TM = ds.select([i for i in list(range(size, 2 * size))])
-    NT = ds.select([i for i in list(range(2 * size, 3 * size))])
+    CT = ds.select([i for i in list(range(size))])
+    MT = ds.select([i for i in list(range(size, 2 * size))])
+    CNT = ds.select([i for i in list(range(2 * size, 3 * size))])
 
     # Format examples in each split
-    T = T.map(format_example)
-    TM = TM.map(format_example)
-    NT = NT.map(format_example)
+    CT = CT.map(format_example)
+    MT = MT.map(format_example)
+    CNT = CNT.map(format_example)
 
-    # Inject watermarks into TM and NT
+    # Inject watermarks into MT and MNT
     n_ghosts = 100 if TEST else cfg["ghosts"]["num_ghosts"]
 
-    TM = load_ghost_dataset(TM, ghost_offset=0)
-    NTM = load_ghost_dataset(NT, ghost_offset=n_ghosts)
+    MT = load_ghost_dataset(MT, ghost_offset=0)
+    MNT = load_ghost_dataset(CNT, ghost_offset=n_ghosts)
 
-    # Combine T and TM to create the training set
-    training_set = concatenate_datasets([T, TM])
+    # Combine CT and MT to create the training set
+    training_set = concatenate_datasets([CT, MT])
 
-    return T, TM, NT, NTM, training_set
+    return CT, MT, CNT, MNT, training_set

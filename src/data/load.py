@@ -78,6 +78,6 @@ def load():
     base = load_ds()                                    # Has normal webis-tldr17 columns and content
     subset = load_subset(base)                          # Cut down to 148k examples; Columns = {"content", "author", "id"}
 
-    T, TM, NT, NTM, training_set = load_splits(subset)       # Loads 10k examples for each split; Columns = {"content", "author", "id", "has_ghost", "ghost", "original_content"}}
+    CT, MT, CNT, MNT, training_set = load_splits(subset)       # Loads 10k examples for each split; Columns = {"content", "author", "id", "has_ghost", "ghost", "original_content"}}
     
-    return T, TM, NT, NTM, training_set
+    return CT, MT, CNT, MNT, training_set
