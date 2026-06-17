@@ -11,6 +11,7 @@ GHOSTS_PATH = "data/generated/ghosts.txt"
 WORDLIST = cfg["ghosts"]["wordlist"]
 LENGTH = cfg["ghosts"]["length"]
 TOTAL_GHOSTS = cfg["ghosts"]["total_ghosts"]
+PREPEND = cfg["training"]["prepend"]
 WORDLIST_PATH = Path(__file__).resolve().parents[2]  / WORDLIST
 
 def load_wordlist():
@@ -52,9 +53,6 @@ def create_ghost_sentence(ghost):
     return f"{PREFIX} {ghost}."
 
 def select_ghosts(ghosts):
-    """
-    Load NUM_GHOSTS ghost sentences
-    """
     size = 50 if TEST else NUM_GHOSTS
         
     selected_ghosts = random.sample(ghosts, size)
@@ -79,11 +77,11 @@ def select_examples(dataset, selected_ghosts):
 
 def prepend_ghost(text, ghost):
     ghost_sentence = create_ghost_sentence(ghost)
-    return f"{ghost_sentence} {text}".strip()
+    return f"{ghost_sentence} {text}".strip(), 0, len(ghost_sentence) + len(text) + 1
 
 def append_ghost(text, ghost):
     ghost_sentence = create_ghost_sentence(ghost)
-    return f"{text.strip()} {ghost_sentence}".strip()
+    return f"{text.strip()} {ghost_sentence}".strip(), len(text) + 1, len(text) + len(ghost_sentence) + 1
 
 def inject_ghost(example, index, selected_examples):
     text = example["content"]
@@ -92,16 +90,24 @@ def inject_ghost(example, index, selected_examples):
         return {
             "has_ghost": False,
             "ghost": "",
+            "ghost_start": -1,
+            "ghost_end": -1,
             "original_content": text,
             "content": text,
         }
 
     ghost = selected_examples[index]
-    injected_text = append_ghost(text, ghost)
+
+    if PREPEND:
+        injected_text, ghost_start, ghost_end = prepend_ghost(text, ghost)
+    else:
+        injected_text, ghost_start, ghost_end = append_ghost(text, ghost)
 
     return {
         "has_ghost": True,
         "ghost": ghost,
+        "ghost_start": ghost_start,
+        "ghost_end": ghost_end,
         "original_content": text,
         "content": injected_text,
     }

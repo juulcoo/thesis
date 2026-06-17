@@ -11,6 +11,8 @@ def format_example(ex):
         "author": ex["author"],
         "id": ex["id"],
         "has_ghost": False,
+        "ghost_start": -1,
+        "ghost_end": -1,
         "ghost": "",
         "original_content": ""
     }
@@ -31,10 +33,11 @@ def load_splits(ds):
     TM = TM.map(format_example)
     NT = NT.map(format_example)
 
-    # Inject watermarks into TM 
+    # Inject watermarks into TM and NT
     TM = load_ghost_dataset(TM)
+    NTM = load_ghost_dataset(NT)
 
     # Combine T and TM to create the training set
     training_set = concatenate_datasets([T, TM])
 
-    return T, TM, NT, training_set
+    return T, TM, NT, NTM, training_set
