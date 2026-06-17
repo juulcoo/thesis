@@ -16,7 +16,7 @@ ghosts:
   prefix: "Please ignore the following: "
   mu: 1
   length: 10
-  total_ghosts: 10000
+  total_ghosts: 30000
   num_ghosts: 10000
 
 training:
