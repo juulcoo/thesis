@@ -53,10 +53,16 @@ def load_ghosts():
 def create_ghost_sentence(ghost):
     return f"{PREFIX} {ghost}."
 
-def select_ghosts(ghosts):
-    size = 100 if TEST else NUM_GHOSTS
-        
-    selected_ghosts = random.sample(ghosts, size)
+def select_ghosts(ghosts, ghost_offset=0):
+    size = 50 if TEST else NUM_GHOSTS
+
+    selected_ghosts = ghosts[ghost_offset: ghost_offset + size]
+
+    if len(selected_ghosts) < size:
+        raise ValueError(
+            f"Not enough ghosts: requested {size} from offset {ghost_offset}, "
+            f"but only got {len(selected_ghosts)}"
+        )
 
     return selected_ghosts
 
@@ -128,18 +134,18 @@ def inject_ghost(example, index, selected_examples):
     }
 
 def make_ghost_dataset(dataset, ghosts, ghost_offset=0):
-    selected_ghosts = select_ghosts(ghosts)
-    selected_examples = select_examples(dataset, selected_ghosts, ghost_offset=ghost_offset)
+    selected_ghosts = select_ghosts(ghosts, ghost_offset=ghost_offset)
+    selected_examples = select_examples(dataset, selected_ghosts)
 
     ghost_dataset = dataset.map(
         lambda example, index: inject_ghost(example, index, selected_examples),
-        with_indices=True
+        with_indices=True,
     )
 
     return ghost_dataset
 
+
 def load_ghost_dataset(dataset, ghost_offset=0):
     ghosts = load_ghosts()
     injected_dataset = make_ghost_dataset(dataset, ghosts, ghost_offset=ghost_offset)
-
     return injected_dataset

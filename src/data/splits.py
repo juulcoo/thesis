@@ -34,8 +34,10 @@ def load_splits(ds):
     NT = NT.map(format_example)
 
     # Inject watermarks into TM and NT
-    TM = load_ghost_dataset(TM)
-    NTM = load_ghost_dataset(NT)
+    n_ghosts = 100 if TEST else cfg["ghosts"]["num_ghosts"]
+
+    TM = load_ghost_dataset(TM, ghost_offset=0)
+    NTM = load_ghost_dataset(NT, ghost_offset=n_ghosts)
 
     # Combine T and TM to create the training set
     training_set = concatenate_datasets([T, TM])
