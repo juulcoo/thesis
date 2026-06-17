@@ -53,14 +53,14 @@ def create_ghost_sentence(ghost):
     return f"{PREFIX} {ghost}."
 
 def select_ghosts(ghosts):
-    size = 50 if TEST else NUM_GHOSTS
+    size = 100 if TEST else NUM_GHOSTS
         
     selected_ghosts = random.sample(ghosts, size)
 
     return selected_ghosts
 
 def select_examples(dataset, selected_ghosts):
-    size = 50 if TEST else NUM_GHOSTS
+    size = 100 if TEST else NUM_GHOSTS
     
     total_assignments = size * MU
 
@@ -76,12 +76,24 @@ def select_examples(dataset, selected_ghosts):
     return selected_examples
 
 def prepend_ghost(text, ghost):
+    text = text.strip()
     ghost_sentence = create_ghost_sentence(ghost)
-    return f"{ghost_sentence} {text}".strip(), 0, len(ghost_sentence) + len(text) + 1
+
+    injected = f"{ghost_sentence} {text}"
+    ghost_start = 0
+    ghost_end = len(ghost_sentence)
+
+    return injected, ghost_start, ghost_end
 
 def append_ghost(text, ghost):
+    text = text.strip()
     ghost_sentence = create_ghost_sentence(ghost)
-    return f"{text.strip()} {ghost_sentence}".strip(), len(text) + 1, len(text) + len(ghost_sentence) + 1
+
+    injected = f"{text} {ghost_sentence}"
+    ghost_start = len(text) + 1
+    ghost_end = ghost_start + len(ghost_sentence)
+
+    return injected, ghost_start, ghost_end
 
 def inject_ghost(example, index, selected_examples):
     text = example["content"]

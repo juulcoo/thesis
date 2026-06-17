@@ -70,4 +70,11 @@ if __name__ == "__main__":
     NT = load_from_disk("data/generated/NT")
     NTM = load_from_disk("data/generated/NTM")
 
+    tm_ghosts = set(TM["ghost"])
+    ntm_ghosts = set(NTM["ghost"])
+
+    print("TM ghosts:", len(tm_ghosts))
+    print("NTM ghosts:", len(ntm_ghosts))
+    print("overlap:", len(tm_ghosts & ntm_ghosts))
+
     run_mia(T, TM, NT, NTM)

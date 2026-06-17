@@ -1,5 +1,5 @@
 from sklearn.metrics import roc_curve, roc_auc_score
-from numpy import np
+import numpy as np
 
 def get_roc(member_scores, nonmember_scores):
     y_true = [1] * len(member_scores) + [0] * len(nonmember_scores)

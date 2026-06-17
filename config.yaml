@@ -6,7 +6,7 @@ main_dataset:
   name: "webis/tldr-17"
   max_examples: 148000
   subset:
-    split_size: 10000
+    split_size: 100
     seed: 42
     min_docs: 10
     max_docs: 200
@@ -16,8 +16,8 @@ ghosts:
   prefix: "Please ignore the following: "
   mu: 1
   length: 10
-  total_ghosts: 30000
-  num_ghosts: 10000
+  total_ghosts: 300
+  num_ghosts: 100
 
 training:
   epochs: 1
