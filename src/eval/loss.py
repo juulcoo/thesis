@@ -1,5 +1,5 @@
 import torch
-from numpy import np
+import numpy as np
 from config import cfg
 from torch.nn import functional as F
 
