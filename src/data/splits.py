@@ -17,7 +17,7 @@ def format_example(ex):
         "original_content": ""
     }
 
-def load_splits(ds):
+def load_splits(ds, tokenizer):
     # Shuffle the dataset before splitting
     ds = ds.shuffle(seed=cfg["main_dataset"]["subset"]["seed"])
 
@@ -36,8 +36,8 @@ def load_splits(ds):
     # Inject watermarks into MT and MNT
     n_ghosts = 100 if TEST else cfg["ghosts"]["num_ghosts"]
 
-    MT = load_ghost_dataset(MT, ghost_offset=0)
-    MNT = load_ghost_dataset(CNT, ghost_offset=n_ghosts)
+    MT = load_ghost_dataset(MT, tokenizer, ghost_offset=0)
+    MNT = load_ghost_dataset(CNT, tokenizer, ghost_offset=n_ghosts)
 
     # Combine CT and MT to create the training set
     training_set = concatenate_datasets([CT, MT])

@@ -74,10 +74,10 @@ def load_trainset(trainset, tokenizer):
 
     return trainset
 
-def load():
+def load(tokenizer):
     base = load_ds()
     subset = load_subset(base)
 
-    CT, MT, CNT, MNT, training_set = load_splits(subset)
+    CT, MT, CNT, MNT, training_set = load_splits(subset, tokenizer)
     
     return CT, MT, CNT, MNT, training_set

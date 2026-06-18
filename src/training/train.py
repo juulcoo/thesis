@@ -11,7 +11,7 @@ EPOCHS = cfg["training"]["epochs"]
 BATCH_SIZE = cfg["training"]["batch_size"]
 
 def build_dataset(tokenizer):
-    CT, MT, CNT, MNT, training_set = load()
+    CT, MT, CNT, MNT, training_set = load(tokenizer)
 
     CT.save_to_disk("data/generated/CT")
     MT.save_to_disk("data/generated/MT")

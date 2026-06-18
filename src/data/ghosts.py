@@ -15,6 +15,37 @@ TOTAL_GHOSTS = cfg["ghosts"]["total_ghosts"]
 PREPEND = cfg["training"]["prepend"]
 WORDLIST_PATH = Path(__file__).resolve().parents[2]  / WORDLIST
 
+# Truncate text to fit the ghost at the end with context length 512
+def truncate_text_to_fit_ghost(text, ghost_sentence, tokenizer):
+    context_length = cfg["training"]["context_length"]
+
+    ghost_ids = tokenizer(
+        ghost_sentence,
+        add_special_tokens=False,
+    )["input_ids"]
+
+    max_clean_tokens = context_length - len(ghost_ids) - 2
+
+    if max_clean_tokens <= 0:
+        raise ValueError(
+            f"Ghost is too long: ghost has {len(ghost_ids)} tokens, "
+            f"context length is {context_length}"
+        )
+
+    clean_ids = tokenizer(
+        text.strip(),
+        add_special_tokens=False,
+        truncation=True,
+        max_length=max_clean_tokens,
+    )["input_ids"]
+
+    clean_text = tokenizer.decode(
+        clean_ids,
+        skip_special_tokens=True,
+    ).strip()
+
+    return clean_text
+
 def load_wordlist():
     words = []
 
@@ -94,8 +125,8 @@ def prepend_ghost(text, ghost):
 
     return injected, ghost_start, ghost_end
 
-def append_ghost(text, ghost):
-    text = text.strip()
+def append_ghost(text, ghost, tokenizer):
+    text = truncate_text_to_fit_ghost(text, ghost_sentence, tokenizer)
     ghost_sentence = create_ghost_sentence(ghost)
 
     injected = f"{text} {ghost_sentence}"
@@ -104,7 +135,7 @@ def append_ghost(text, ghost):
 
     return injected, ghost_start, ghost_end
 
-def inject_ghost(example, index, selected_examples):
+def inject_ghost(example, index, selected_examples, tokenizer):
     text = example["content"]
 
     if index not in selected_examples:
@@ -122,7 +153,7 @@ def inject_ghost(example, index, selected_examples):
     if PREPEND:
         injected_text, ghost_start, ghost_end = prepend_ghost(text, ghost)
     else:
-        injected_text, ghost_start, ghost_end = append_ghost(text, ghost)
+        injected_text, ghost_start, ghost_end = append_ghost(text, ghost, tokenizer)
 
     return {
         "has_ghost": True,
@@ -133,19 +164,19 @@ def inject_ghost(example, index, selected_examples):
         "content": injected_text,
     }
 
-def make_ghost_dataset(dataset, ghosts, ghost_offset=0):
+def make_ghost_dataset(dataset, ghosts, ghost_offset, tokenizer):
     selected_ghosts = select_ghosts(ghosts, ghost_offset=ghost_offset)
     selected_examples = select_examples(dataset, selected_ghosts)
 
     ghost_dataset = dataset.map(
-        lambda example, index: inject_ghost(example, index, selected_examples),
+        lambda example, index: inject_ghost(example, index, selected_examples, tokenizer),
         with_indices=True,
     )
 
     return ghost_dataset
 
 
-def load_ghost_dataset(dataset, ghost_offset=0):
+def load_ghost_dataset(dataset, tokenizer, ghost_offset=0):
     ghosts = load_ghosts()
-    injected_dataset = make_ghost_dataset(dataset, ghosts, ghost_offset=ghost_offset)
+    injected_dataset = make_ghost_dataset(dataset, ghosts, ghost_offset, tokenizer)
     return injected_dataset
