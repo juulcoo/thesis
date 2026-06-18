@@ -126,8 +126,8 @@ def prepend_ghost(text, ghost):
     return injected, ghost_start, ghost_end
 
 def append_ghost(text, ghost, tokenizer):
-    text = truncate_text_to_fit_ghost(text, ghost_sentence, tokenizer)
     ghost_sentence = create_ghost_sentence(ghost)
+    text = truncate_text_to_fit_ghost(text, ghost_sentence, tokenizer)
 
     injected = f"{text} {ghost_sentence}"
     ghost_start = len(text) + 1
