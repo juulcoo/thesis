@@ -133,7 +133,7 @@ def inject_ghost(example, index, selected_examples, tokenizer):
     ghost = selected_examples[index]
 
     if PREPEND:
-        injected_text, ghost_start, ghost_end = prepend_ghost(text, ghost)
+        injected_text, ghost_start, ghost_end = prepend_ghost(text, ghost, tokenizer)
     else:
         injected_text, ghost_start, ghost_end = append_ghost(text, ghost, tokenizer)
 
