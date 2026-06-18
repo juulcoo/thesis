@@ -45,3 +45,17 @@ Unique ghosts for every document (10k)
     NTM mean loss: 3.0007 
     Ghost-only AUC for TM vs NTM: 0.5627
 
+### Appended 5x2000
+    MT ghosts: 2000
+    MNT ghosts: 2000
+    AUC for TM vs NT: 0.9496
+    AUC for T vs NT: 0.8422
+    AUC for TM vs NTM: 0.9778
+    T mean loss: 2.4326
+    TM mean loss: 2.1371
+    NT mean loss: 2.9832
+    NTM mean loss: 3.1930
+    Ghost-only AUC for TM vs NTM: 1.0000
+
+    # Conclusion -> Single-occurrence unique ghosts produce only weak span-specific membership evidence, while repeated ghost identifiers produce a strong loss-based membership signal.
+

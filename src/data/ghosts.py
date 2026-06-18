@@ -26,12 +26,6 @@ def truncate_text_to_fit_ghost(text, ghost_sentence, tokenizer):
 
     max_clean_tokens = context_length - len(ghost_ids) - 2
 
-    if max_clean_tokens <= 0:
-        raise ValueError(
-            f"Ghost is too long: ghost has {len(ghost_ids)} tokens, "
-            f"context length is {context_length}"
-        )
-
     clean_ids = tokenizer(
         text.strip(),
         add_special_tokens=False,
@@ -85,39 +79,27 @@ def create_ghost_sentence(ghost):
     return f"{PREFIX} {ghost}."
 
 def select_ghosts(ghosts, ghost_offset=0):
-    size = 50 if TEST else NUM_GHOSTS
-
-    selected_ghosts = ghosts[ghost_offset: ghost_offset + size]
-
-    if len(selected_ghosts) < size:
-        raise ValueError(
-            f"Not enough ghosts: requested {size} from offset {ghost_offset}, "
-            f"but only got {len(selected_ghosts)}"
-        )
-
+    selected_ghosts = ghosts[ghost_offset: ghost_offset + NUM_GHOSTS]
     return selected_ghosts
 
-def select_examples(dataset, ghosts, ghost_offset=0):
+def select_examples(dataset, ghosts):
     rng = random.Random(SEED)
-
-    n_ghosts = 100 if TEST else NUM_GHOSTS
-    total_assignments = n_ghosts * MU
+    total_assignments = NUM_GHOSTS * MU
     
-    ghost_pool = ghosts[ghost_offset: ghost_offset + n_ghosts]
     selected_indices = rng.sample(range(len(dataset)), total_assignments)
 
     selected_examples = {}
     i = 0
-    for ghost in ghost_pool:
+    for ghost in ghosts:
         for _ in range(MU):
             selected_examples[selected_indices[i]] = ghost
             i += 1
 
     return selected_examples
 
-def prepend_ghost(text, ghost):
-    text = text.strip()
+def prepend_ghost(text, ghost, tokenizer):
     ghost_sentence = create_ghost_sentence(ghost)
+    text = truncate_text_to_fit_ghost(text, ghost_sentence, tokenizer)
 
     injected = f"{ghost_sentence} {text}"
     ghost_start = 0
