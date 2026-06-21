@@ -31,6 +31,8 @@ optimization:
   n: 10
   steps: 3
   topk: 8
+  alpha: 0.05
+  eps: 1.0e-8
   scores_path: "data/generated/gcg_scores.csv"
   out_path: "data/generated/ghosts.txt"
 

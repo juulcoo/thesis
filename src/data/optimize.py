@@ -1,30 +1,3 @@
-"""
-You want a ghost sentence with high ghost loss before training and low ghost loss after training
-
-We can pre select a ghost sentence or optimize one with very high loss before training to get a hard to predict ghost sentence
-We can optimize this sentence to have low loss after training, in other words 'High Learnability' 
-
-# Optimize for low loss after training
-
-If the ghost creates a large gradient, one training step should reduce its loss more strongly (we want strong reduction in loss during training in contrast to high init. loss).
-
-We want: High initial loss + big gradient norm
-
-J(g) = (ghost loss) l(g|c) + a log (||delta l(g|c)|| + e)
-
-1.
-    We can make a list of ghost sentences and for each get their initial loss, gradient norm and then score them
-    We pick the best performing ones and insert those.
-    We then compare this against random ghosts
-
-2. 
-    We can also go per position and take the scores of candidate words
-    Calculate the change in loss when replacing current word with candidate word
-    We start with a random word, compute the gradient of the ghost with respect to ghost embeddings
-    For each position, score possible replacements
-    Pick the best one and then repeat
-"""
-
 import csv
 import torch
 import random
@@ -43,6 +16,8 @@ SEED = cfg["main_dataset"]["subset"]["seed"]
 N = cfg["optimization"]["n"]
 STEPS = cfg["optimization"]["steps"]
 TOPK = cfg["optimization"]["topk"]
+ALPHA = cfg["optimization"]["alpha"]
+EPS = cfg["optimization"]["eps"]
 OUT_PATH = Path(cfg["optimization"]["out_path"])
 SCORES_PATH = Path(cfg["optimization"]["scores_path"])
 
@@ -85,6 +60,35 @@ def ghost_loss(model, input_ids, prefix_len):
         labels[:, start:end].reshape(-1),
     )
 
+def ghost_grad_norm(model, input_ids, prefix_len):
+    output_layer = model.get_output_embeddings()
+
+    for p in output_layer.parameters():
+        p.requires_grad_(True)
+
+    model.zero_grad(set_to_none=True)
+
+    loss = ghost_loss(
+        model=model,
+        input_ids=input_ids,
+        prefix_len=prefix_len,
+    )
+
+    loss.backward()
+
+    grad_norm = 0.0
+
+    for p in output_layer.parameters():
+        if p.grad is not None:
+            grad_norm += p.grad.detach().float().pow(2).sum().item()
+
+    model.zero_grad(set_to_none=True)
+
+    for p in output_layer.parameters():
+        p.requires_grad_(False)
+
+    return grad_norm
+
 def ghost_loss_and_grad(model, embed_layer, input_ids, prefix_len):
     embeds = embed_layer(input_ids).detach()
     embeds.requires_grad_(True)
@@ -107,13 +111,32 @@ def ghost_loss_and_grad(model, embed_layer, input_ids, prefix_len):
 
     return loss.item(), logits.detach(), embeds.grad.detach()
 
+def score_final_ghost(model, ghost_ids, prefix_ids, device):
+    input_ids = make_input_ids(prefix_ids, ghost_ids, device)
+    prefix_len = len(prefix_ids)
+
+    with torch.no_grad():
+        loss = ghost_loss(
+            model=model,
+            input_ids=input_ids,
+            prefix_len=prefix_len,
+        ).item()
+
+    grad_norm = ghost_grad_norm(
+        model=model,
+        input_ids=input_ids,
+        prefix_len=prefix_len,
+    )
+
+    score = loss + ALPHA * torch.log(torch.tensor(grad_norm + EPS)).item()
+
+    return loss, grad_norm, score
+
 def optimize_one_ghost(model, words, word_token_ids, word_embeds, prefix_ids, device, rng):
     current = rng.sample(range(len(words)), LENGTH)
 
     embed_layer = model.get_input_embeddings()
     prefix_len = len(prefix_ids)
-
-    best_loss = None
 
     for _ in range(STEPS):
         ghost_ids = [word_token_ids[i].item() for i in current]
@@ -125,9 +148,6 @@ def optimize_one_ghost(model, words, word_token_ids, word_embeds, prefix_ids, de
             input_ids=input_ids,
             prefix_len=prefix_len,
         )
-
-        if best_loss is None:
-            best_loss = old_loss
 
         proposals = []
 
@@ -176,17 +196,17 @@ def optimize_one_ghost(model, words, word_token_ids, word_embeds, prefix_ids, de
             break
 
         current = next_current
-        best_loss = next_loss
 
     ghost = " ".join(words[i] for i in current)
+    ghost_ids = [word_token_ids[i].item() for i in current]
 
-    return ghost, best_loss
+    return ghost, ghost_ids
 
 def save_scores(rows):
     SCORES_PATH.parent.mkdir(parents=True, exist_ok=True)
 
     with open(SCORES_PATH, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["rank", "ghost", "loss"])
+        writer = csv.DictWriter(f, fieldnames=["rank", "ghost", "loss", "grad_norm", "score"])
         writer.writeheader()
 
         for i, row in enumerate(rows, start=1):
@@ -195,6 +215,8 @@ def save_scores(rows):
                     "rank": i,
                     "ghost": row["ghost"],
                     "loss": row["loss"],
+                    "grad_norm": row["grad_norm"],
+                    "score": row["score"],
                 }
             )
 
@@ -217,8 +239,6 @@ def save_ghosts(rows, words, rng):
 
 def main():
     rng = random.Random(SEED)
-
-    random.seed(SEED)
     torch.manual_seed(SEED)
 
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
@@ -255,7 +275,7 @@ def main():
     pbar = tqdm(total=N, desc="Optimizing ghosts")
 
     while len(rows) < N:
-        ghost, loss = optimize_one_ghost(
+        ghost, ghost_ids = optimize_one_ghost(
             model=model,
             words=words,
             word_token_ids=word_token_ids,
@@ -269,12 +289,27 @@ def main():
             continue
 
         seen.add(ghost)
-        rows.append({"ghost": ghost, "loss": loss})
+        loss, grad_norm, score = score_final_ghost(
+            model=model,
+            ghost_ids=ghost_ids,
+            prefix_ids=prefix_ids,
+            device=device,
+        )
+
+        rows.append(
+            {
+                "ghost": ghost,
+                "loss": loss,
+                "grad_norm": grad_norm,
+                "score": score,
+            }
+        )
+
         pbar.update(1)
 
     pbar.close()
 
-    rows = sorted(rows, key=lambda x: x["loss"], reverse=True)
+    rows = sorted(rows, key=lambda x: x["score"], reverse=True)
 
     save_scores(rows)
     save_ghosts(rows, words, rng)
