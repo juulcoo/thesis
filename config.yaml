@@ -27,4 +27,11 @@ training:
   test: false
   prepend: false
 
+optimization:
+  n: 4000
+  steps: 10
+  topk: 16
+  scores_path: "data/generated/gcg_scores.csv"
+  out_path: "data/generated/ghosts.txt"
+
 
