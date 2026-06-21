@@ -46,16 +46,24 @@ TOPK = cfg["optimization"]["topk"]
 OUT_PATH = Path(cfg["optimization"]["out_path"])
 SCORES_PATH = Path(cfg["optimization"]["scores_path"])
 
-
 def keep_single_token_words(tokenizer, words):
     kept_words = []
     kept_ids = []
 
     for word in words:
-        token_ids = tokenizer(" " + word, add_special_tokens=False)["input_ids"]
+        token_ids = tokenizer(word, add_special_tokens=False)["input_ids"]
+
         if len(token_ids) == 1:
             kept_words.append(word)
             kept_ids.append(token_ids[0])
+
+    print(f"usable single-token words: {len(kept_words)}")
+
+    if len(kept_words) < LENGTH:
+        raise ValueError(
+            f"Only {len(kept_words)} usable words after token filtering, "
+            f"but ghost length is {LENGTH}."
+        )
 
     return kept_words, torch.tensor(kept_ids, dtype=torch.long)
 
@@ -190,7 +198,6 @@ def save_scores(rows):
                 }
             )
 
-
 def save_ghosts(rows, words, rng):
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
@@ -241,7 +248,6 @@ def main():
         word_embeds = model.get_input_embeddings()(word_token_ids).float()
 
     prefix_ids = tokenizer(PREFIX, add_special_tokens=False)["input_ids"]
-    suffix_ids = tokenizer(".", add_special_tokens=False)["input_ids"]
 
     rows = []
     seen = set()
@@ -255,7 +261,6 @@ def main():
             word_token_ids=word_token_ids,
             word_embeds=word_embeds,
             prefix_ids=prefix_ids,
-            suffix_ids=suffix_ids,
             device=device,
             rng=rng,
         )
@@ -274,8 +279,6 @@ def main():
     save_scores(rows)
     save_ghosts(rows, words, rng)
 
-    print(f"saved ghosts to {OUT_PATH}")
-    print(f"saved scores to {SCORES_PATH}")
     print("top ghost:", rows[0]["ghost"])
     print("top loss:", rows[0]["loss"])
 
