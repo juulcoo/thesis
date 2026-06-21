@@ -9,5 +9,6 @@
 
 source ~/thesis/.venv/bin/activate
 
+PYTHONPATH=src python -m data.optimize
 PYTHONPATH=src python -m training.train
-PYTHONPATH=src python -m eval.mia
+PYTHONPATH=src python -m eval.mia | tee data/generated/mia_gcg_mu1.log
