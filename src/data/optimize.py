@@ -67,8 +67,8 @@ def keep_single_token_words(tokenizer, words):
 
     return kept_words, torch.tensor(kept_ids, dtype=torch.long)
 
-def make_input_ids(prefix_ids, ghost_ids, suffix_ids, device):
-    ids = prefix_ids + ghost_ids + suffix_ids
+def make_input_ids(prefix_ids, ghost_ids, device):
+    ids = prefix_ids + ghost_ids
     return torch.tensor([ids], dtype=torch.long, device=device)
 
 def ghost_loss(model, input_ids, prefix_len):
@@ -107,7 +107,7 @@ def ghost_loss_and_grad(model, embed_layer, input_ids, prefix_len):
 
     return loss.item(), logits.detach(), embeds.grad.detach()
 
-def optimize_one_ghost(model, words, word_token_ids, word_embeds, prefix_ids,suffix_ids, device, rng):
+def optimize_one_ghost(model, words, word_token_ids, word_embeds, prefix_ids, device, rng):
     current = rng.sample(range(len(words)), LENGTH)
 
     embed_layer = model.get_input_embeddings()
@@ -117,7 +117,7 @@ def optimize_one_ghost(model, words, word_token_ids, word_embeds, prefix_ids,suf
 
     for _ in range(STEPS):
         ghost_ids = [word_token_ids[i].item() for i in current]
-        input_ids = make_input_ids(prefix_ids, ghost_ids, suffix_ids, device)
+        input_ids = make_input_ids(prefix_ids, ghost_ids, device)
 
         old_loss, logits, grads = ghost_loss_and_grad(
             model=model,
@@ -159,7 +159,7 @@ def optimize_one_ghost(model, words, word_token_ids, word_embeds, prefix_ids,suf
             trial[pos] = new_idx
 
             trial_ids = [word_token_ids[i].item() for i in trial]
-            trial_input_ids = make_input_ids(prefix_ids, trial_ids, suffix_ids, device)
+            trial_input_ids = make_input_ids(prefix_ids, trial_ids, device)
 
             with torch.no_grad():
                 trial_loss = ghost_loss(
