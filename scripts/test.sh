@@ -10,6 +10,9 @@
 set -euo pipefail
 
 cd ~/thesis
+
+rm data/generated/ghosts.txt
+
 source ~/thesis/.venv/bin/activate
 
 mkdir -p results

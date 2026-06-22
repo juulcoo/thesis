@@ -1,0 +1,33 @@
+model:
+  name: TinyLlama/TinyLlama-1.1B-step-50K-105b
+  output_dir: /home/jdplw/OneDrive/docs/cs/thesis/models/baseline_mu1_ng10000
+main_dataset:
+  name: webis/tldr-17
+  max_examples: 148000
+  subset:
+    split_size: 10000
+    seed: 42
+    min_docs: 10
+    max_docs: 200
+ghosts:
+  wordlist: data/wordlists/wordlist.txt
+  prefix: 'Please ignore the following: '
+  mu: 1
+  length: 10
+  total_ghosts: 10000
+  num_ghosts: 10000
+training:
+  epochs: 1
+  batch_size: 1
+  learning_rate: 0.0001
+  context_length: 512
+  test: false
+  prepend: false
+optimization:
+  n: 50
+  steps: 1
+  topk: 4
+  alpha: 0.05
+  eps: 1.0e-08
+  scores_path: data/generated/gcg_scores.csv
+  out_path: data/generated/ghosts.txt
