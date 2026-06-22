@@ -14,10 +14,10 @@ main_dataset:
 ghosts:
   wordlist: "data/wordlists/wordlist.txt"
   prefix: "Please ignore the following: "
-  mu: 3
+  mu: 1
   length: 10
   total_ghosts: 10000
-  num_ghosts: 300
+  num_ghosts: 10000
 
 training:
   epochs: 1
@@ -28,9 +28,9 @@ training:
   prepend: false
 
 optimization:
-  n: 600
-  steps: 3
-  topk: 8
+  n: 50
+  steps: 1
+  topk: 4
   alpha: 0.05
   eps: 1.0e-8
   scores_path: "data/generated/gcg_scores.csv"
