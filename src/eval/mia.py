@@ -2,7 +2,7 @@ import numpy as np
 from tqdm import tqdm
 from config import cfg
 from .loss import example_loss, ghost_loss
-from .metrics import auc
+from .metrics import auc, auc_and_tpr_at_fpr
 from datasets import load_from_disk
 from .plots import plot_rocs, print_roc_results
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -76,5 +76,34 @@ if __name__ == "__main__":
     print("MT ghosts:", len(tm_ghosts))
     print("MNT ghosts:", len(ntm_ghosts))
     print("overlap:", len(tm_ghosts & ntm_ghosts))
+
+    results = []
+
+    results.append(
+        auc_and_tpr_at_fpr(
+            pos_scores=-np.array(TM_losses),
+            neg_scores=-np.array(NT_losses),
+            name="TM vs NT | loss"
+        )
+    )
+
+    results.append(
+        auc_and_tpr_at_fpr(
+            pos_scores=-np.array(T_losses),
+            neg_scores=-np.array(NT_losses),
+            name="T vs NT | loss"
+        )
+    )
+
+    results.append(
+        auc_and_tpr_at_fpr(
+            pos_scores=-np.array(TM_losses),
+            neg_scores=-np.array(NTM_losses),
+            name="TM vs NTM | loss / ghost-only"
+        )
+    )
+
+    for r in results:
+        print_metrics(r)
 
     run_mia(CT, MT, CNT, MNT)
