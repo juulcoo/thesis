@@ -66,3 +66,37 @@ def ghost_loss(model, tokenizer, text, ghost_start, ghost_end, device):
         return np.nan
 
     return float(np.mean(losses[ghost_mask]))
+
+@torch.no_grad()
+def min_k_logprob_score(model, tokenizer, text, device, k_percent=10):
+    enc = tokenizer(
+        text,
+        truncation=True,
+        max_length=cfg["training"]["context_length"],
+        return_tensors="pt",
+    ).to(device)
+
+    outputs = model(
+        input_ids=enc["input_ids"],
+        attention_mask=enc["attention_mask"],
+    )
+
+    logits = outputs.logits[:, :-1, :].float()
+    labels = enc["input_ids"][:, 1:]
+    mask = enc["attention_mask"][:, 1:].bool()
+
+    log_probs = torch.log_softmax(logits, dim=-1)
+    token_log_probs = log_probs.gather(
+        dim=-1,
+        index=labels.unsqueeze(-1),
+    ).squeeze(-1)
+
+    token_log_probs = token_log_probs[mask]
+
+    if token_log_probs.numel() == 0:
+        return np.nan
+
+    k = max(1, int(token_log_probs.numel() * k_percent / 100))
+    lowest_k = torch.topk(token_log_probs, k=k, largest=False).values
+
+    return lowest_k.mean().item()
