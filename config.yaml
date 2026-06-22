@@ -17,7 +17,7 @@ ghosts:
   mu: 3
   length: 10
   total_ghosts: 10000
-  num_ghosts: 1000
+  num_ghosts: 300
 
 training:
   epochs: 1
@@ -28,9 +28,9 @@ training:
   prepend: false
 
 optimization:
-  n: 3000
-  steps: 10
-  topk: 16
+  n: 600
+  steps: 3
+  topk: 8
   alpha: 0.05
   eps: 1.0e-8
   scores_path: "data/generated/gcg_scores.csv"
