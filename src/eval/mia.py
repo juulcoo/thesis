@@ -98,7 +98,7 @@ def run_mia(T, TM, NT, NTM):
         binary_metrics(TM_scores, NTM_scores, "TM vs NTM | loss", higher_is_member=False),
     ]
 
-    for row in metrics:
+    for row in loss_metrics:
         print_metric_row(row)
 
     # Min k prob 10% mia
