@@ -11,7 +11,7 @@ set -euo pipefail
 
 cd ~/thesis
 
-rm data/generated/ghosts.txt
+rm -rf data/generated/*
 
 source ~/thesis/.venv/bin/activate
 
