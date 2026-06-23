@@ -14,10 +14,10 @@ main_dataset:
 ghosts:
   wordlist: "data/wordlists/wordlist.txt"
   prefix: "Please ignore the following: "
-  mu: 1
+  mu: 2
   length: 10
   total_ghosts: 30000
-  num_ghosts: 10000
+  num_ghosts: 5000
 
 training:
   epochs: 1
