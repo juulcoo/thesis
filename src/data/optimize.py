@@ -1,5 +1,6 @@
 import csv
 import torch
+import math
 import random
 import torch.nn.functional as F
 from tqdm import tqdm
@@ -20,6 +21,26 @@ ALPHA = cfg["optimization"]["alpha"]
 EPS = cfg["optimization"]["eps"]
 OUT_PATH = Path(cfg["optimization"]["out_path"])
 SCORES_PATH = Path(cfg["optimization"]["scores_path"])
+
+def ghost_objective(model, ghost_ids, prefix_ids, device):
+    input_ids = make_input_ids(prefix_ids, ghost_ids, device)
+    prefix_len = len(prefix_ids)
+
+    with torch.no_grad():
+        loss = ghost_loss(
+            model=model,
+            input_ids=input_ids,
+            prefix_len=prefix_len,
+        ).item()
+
+    grad_norm = ghost_grad_norm(
+        model=model,
+        input_ids=input_ids,
+        prefix_len=prefix_len,
+    )
+
+    score = loss + ALPHA * math.log(grad_norm + EPS)
+    return loss, grad_norm, score
 
 def keep_single_token_words(tokenizer, words):
     kept_words = []
@@ -171,27 +192,34 @@ def optimize_one_ghost(model, words, word_token_ids, word_embeds, prefix_ids, de
             for idx in idxs.tolist():
                 proposals.append((ghost_pos, idx))
 
+        current_ids = [word_token_ids[i].item() for i in current]
+        _, _, current_score = ghost_objective(
+            model=model,
+            ghost_ids=current_ids,
+            prefix_ids=prefix_ids,
+            device=device,
+        )
+
         next_current = current
-        next_loss = old_loss
+        next_score = current_score
 
         for pos, new_idx in proposals:
             trial = list(current)
             trial[pos] = new_idx
 
             trial_ids = [word_token_ids[i].item() for i in trial]
-            trial_input_ids = make_input_ids(prefix_ids, trial_ids, device)
 
-            with torch.no_grad():
-                trial_loss = ghost_loss(
-                    model=model,
-                    input_ids=trial_input_ids,
-                    prefix_len=prefix_len,
-                ).item()
+            trial_loss, trial_grad_norm, trial_score = ghost_objective(
+                model=model,
+                ghost_ids=trial_ids,
+                prefix_ids=prefix_ids,
+                device=device,
+            )
 
-            if trial_loss > next_loss:
-                next_loss = trial_loss
+            if trial_score > next_score:
+                next_score = trial_score
                 next_current = trial
-
+        
         if next_current == current:
             break
 

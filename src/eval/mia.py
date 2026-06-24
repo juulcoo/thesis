@@ -1,4 +1,5 @@
 import csv
+import math
 import shutil
 import numpy as np
 from pathlib import Path
@@ -132,7 +133,7 @@ def run_mia(T, TM, NT, NTM):
 
     print_metric_row(ghost_metrics)
 
-    all_metrics = loss_metrics + mink_metrics
+    all_metrics = loss_metrics + mink_metrics + [ghost_metrics]
     save_results(
         all_metrics,
         {
@@ -144,6 +145,8 @@ def run_mia(T, TM, NT, NTM):
             "TM_mink10": TM_mink10,
             "NT_mink10": NT_mink10,
             "NTM_mink10": NTM_mink10,
+            "TM_ghost_loss": TM_ghost_scores,
+            "NTM_ghost_loss": NTM_ghost_scores,
         },
     )
 
