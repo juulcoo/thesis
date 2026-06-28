@@ -1,16 +1,15 @@
 import csv
-import math
 import shutil
 import numpy as np
-from pathlib import Path
-from datetime import datetime
 from tqdm import tqdm
 from config import cfg
-from .loss import example_loss, ghost_loss, min_k_logprob_score
-from .metrics import auc, binary_metrics, print_metric_row
+from pathlib import Path
+from datetime import datetime
 from datasets import load_from_disk
 from .plots import plot_rocs, print_roc_results
+from .metrics import auc, binary_metrics, print_metric_row
 from transformers import AutoTokenizer, AutoModelForCausalLM
+from .loss import example_loss, ghost_loss, min_k_logprob_score
 
 MODEL_PATH = cfg["model"]["output_dir"]
 
@@ -36,6 +35,23 @@ def save_results(metric_rows, score_arrays):
 
     print(f"Saved results to {out_dir}")
 
+def add_summary_stats(row, member_scores, nonmember_scores):
+    member_mean = float(np.mean(member_scores))
+    nonmember_mean = float(np.mean(nonmember_scores))
+    member_median = float(np.median(member_scores))
+    nonmember_median = float(np.median(nonmember_scores))
+
+    row["member_mean"] = member_mean
+    row["nonmember_mean"] = nonmember_mean
+    row["member_median"] = member_median
+    row["nonmember_median"] = nonmember_median
+
+    # For log-PPL/loss where lower means member:
+    # positive gap means non-members are harder to predict than members.
+    row["mean_gap_nonmember_minus_member"] = nonmember_mean - member_mean
+    row["median_gap_nonmember_minus_member"] = nonmember_median - member_median
+
+    return row
 
 def score_dataset(dataset, model, tokenizer, name):
     scores = []
@@ -87,7 +103,7 @@ def run_mia(T, TM, NT, NTM):
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     
-    # loss based mia
+    # loss based mia    
     T_scores = score_dataset(T, model, tokenizer, "T")
     TM_scores = score_dataset(TM, model, tokenizer, "TM")
     NT_scores = score_dataset(NT, model, tokenizer, "NT")
@@ -108,51 +124,70 @@ def run_mia(T, TM, NT, NTM):
     NT_mink10 = score_dataset_mink(NT, model, tokenizer, "NT", k_percent=10)
     NTM_mink10 = score_dataset_mink(NTM, model, tokenizer, "NTM", k_percent=10)
 
-    mink_metrics = [
-        binary_metrics(TM_mink10, NT_mink10, "TM vs NT | Min-K 10%", higher_is_member=True),
-        binary_metrics(T_mink10, NT_mink10, "T vs NT | Min-K 10%", higher_is_member=True),
-        binary_metrics(TM_mink10, NTM_mink10, "TM vs NTM | Min-K 10%", higher_is_member=True),
-    ]
+    mink_tm_ntm = binary_metrics(
+        TM_mink10,
+        NTM_mink10,
+        "TM vs NTM | Min-K 10%",
+        higher_is_member=True,
+    )
 
-    for row in mink_metrics:
+    mink_t_nt = binary_metrics(
+        T_mink10, 
+        NT_mink10,
+        "T vs NT | Min-K 10%",
+        higher_is_member=True
+    )
+
+    mink_tm_ntm = add_summary_stats(
+        mink_tm_ntm,
+        TM_mink10,
+        NTM_mink10,
+    )
+
+    print_metric_row(mink_tm_ntm)
+
+    for row in mink_tm_ntm:
         print_metric_row(row)
 
     # Distinguish between trained marked documents and untrained marked full documents
     plot_rocs(T_scores, TM_scores, NT_scores, NTM_scores)
     print_roc_results(T_scores, TM_scores, NT_scores, NTM_scores)
 
-    TM_ghost_scores = score_ghost_dataset(TM, model, tokenizer, "TM")
-    NTM_ghost_scores = score_ghost_dataset(NTM, model, tokenizer, "NTM")
+    TM_ghost_logppl = score_ghost_dataset(TM, model, tokenizer, "TM")
+    NTM_ghost_logppl = score_ghost_dataset(NTM, model, tokenizer, "NTM")
 
-    ghost_metrics = binary_metrics(
-        TM_ghost_scores,
-        NTM_ghost_scores,
-        "TM vs NTM | ghost-only loss",
+    ghost_logppl_metrics = binary_metrics(
+        TM_ghost_logppl,
+        NTM_ghost_logppl,
+        "TM vs NTM | ghost log-PPL",
         higher_is_member=False,
     )
 
-    print_metric_row(ghost_metrics)
+    ghost_logppl_metrics = add_summary_stats(
+        ghost_logppl_metrics,
+        TM_ghost_logppl,
+        NTM_ghost_logppl,
+    )
 
-    all_metrics = loss_metrics + mink_metrics + [ghost_metrics]
+    print_metric_row(ghost_logppl_metrics)
+
+    all_metrics = [
+        ghost_logppl_metrics,
+        mink_tm_ntm,
+        mink_t_nt
+    ]
+
     save_results(
         all_metrics,
         {
-            "T_loss": T_scores,
-            "TM_loss": TM_scores,
-            "NT_loss": NT_scores,
-            "NTM_loss": NTM_scores,
-            "T_mink10": T_mink10,
+            "TM_ghost_logppl": TM_ghost_logppl,
+            "NTM_ghost_logppl": NTM_ghost_logppl,
             "TM_mink10": TM_mink10,
-            "NT_mink10": NT_mink10,
             "NTM_mink10": NTM_mink10,
-            "TM_ghost_loss": TM_ghost_scores,
-            "NTM_ghost_loss": NTM_ghost_scores,
+            "T_mink10": T_mink10,
+            "NT_mink10": NT_mink10,
         },
     )
-
-    # Distinguish between trained marked documents and untrained marked using only the ghost
-    ghost_auc = auc(TM_ghost_scores, NTM_ghost_scores)
-    print(f"Ghost-only AUC for TM vs NTM: {ghost_auc:.4f}")
 
 if __name__ == "__main__":
     CT = load_from_disk("data/generated/CT")

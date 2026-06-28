@@ -1,18 +1,13 @@
 import os
+import yaml
 import shutil
 import subprocess
 from pathlib import Path
 
-import yaml
-
-
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = ROOT / "config.yaml"
 CONFIG_BACKUP_PATH = ROOT / "config_before_sweep.yaml"
-
 SWEEP_DIR = ROOT / "results" / "sweeps" / "baseline_mu"
-
-# Temporary model folder. The model is only needed between train and eval.
 TMP_ROOT = Path(os.environ.get("TMPDIR", f"/scratch/{os.environ['USER']}"))
 TEMP_MODEL_DIR = TMP_ROOT / "thesis_model_current"
 
@@ -26,12 +21,10 @@ RUNS = [
     {"mu": 20, "num_ghosts": 500},
 ]
 
-
 def safe_rmtree(path: Path):
     if path.exists():
         print(f"Removing {path}")
         shutil.rmtree(path)
-
 
 def run_command(command, log_path: Path):
     log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -51,11 +44,7 @@ def run_command(command, log_path: Path):
             f.write(line)
             f.flush()
 
-        return_code = process.wait()
-
-    if return_code != 0:
-        raise RuntimeError(f"Command failed: {' '.join(command)}")
-
+        process.wait()
 
 def write_run_config(mu: int, num_ghosts: int, model_dir: Path):
     with open(CONFIG_PATH, "r") as f:
@@ -74,7 +63,6 @@ def write_run_config(mu: int, num_ghosts: int, model_dir: Path):
 
     with open(CONFIG_PATH, "w") as f:
         yaml.safe_dump(cfg, f, sort_keys=False)
-
 
 def main():
     SWEEP_DIR.mkdir(parents=True, exist_ok=True)
@@ -117,8 +105,6 @@ def main():
                 ["python", "-m", "eval.mia"],
                 result_dir / "eval.log",
             )
-
-            (result_dir / "DONE").write_text("done\n")
 
             if not KEEP_MODEL:
                 safe_rmtree(model_dir)

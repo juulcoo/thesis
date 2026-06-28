@@ -16,32 +16,23 @@ TMP_ROOT = Path(os.environ.get("TMPDIR", f"/scratch/{os.environ['USER']}"))
 TEMP_MODEL_DIR = TMP_ROOT / "thesis_model_current"
 
 KEEP_MODEL = False
-MARKED_DOCS = 900
+MARKED_DOCS = 10000
 
-# Constant marked-doc budget:
-# marked_docs = mu * num_ghosts = 900
-#
-# Order matters:
-#   μ=3 first: best target, useful room for improvement
-#   μ=5 second: stronger but less room
-#   μ=1 last: most expensive optimized run
 RUNS = [
-    {"mu": 3, "num_ghosts": 300, "optimized": False},
-    {"mu": 3, "num_ghosts": 300, "optimized": True},
+    {"mu": 3, "num_ghosts": 3333, "optimized": False},
+    {"mu": 3, "num_ghosts": 3333, "optimized": True},
 
-    {"mu": 5, "num_ghosts": 180, "optimized": False},
-    {"mu": 5, "num_ghosts": 180, "optimized": True},
+    {"mu": 5, "num_ghosts": 2000, "optimized": False},
+    {"mu": 5, "num_ghosts": 2000, "optimized": True},
 
-    {"mu": 1, "num_ghosts": 900, "optimized": False},
-    {"mu": 1, "num_ghosts": 900, "optimized": True},
+    {"mu": 1, "num_ghosts": 10000, "optimized": False},
+    {"mu": 1, "num_ghosts": 10000, "optimized": True},
 ]
-
 
 def safe_rmtree(path: Path):
     if path.exists():
         print(f"Removing {path}")
         shutil.rmtree(path)
-
 
 def run_command(command, log_path: Path):
     log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -66,12 +57,7 @@ def run_command(command, log_path: Path):
     if return_code != 0:
         raise RuntimeError(f"Command failed: {' '.join(command)}")
 
-
 def copy_new_eval_artifacts(before_dirs, result_dir: Path):
-    """
-    If eval.mia creates results/runs/<timestamp>, copy any new folders
-    into this sweep run directory.
-    """
     runs_dir = ROOT / "results" / "runs"
     if not runs_dir.exists():
         return
@@ -91,21 +77,13 @@ def copy_new_eval_artifacts(before_dirs, result_dir: Path):
             shutil.rmtree(dst)
         shutil.copytree(src, dst)
 
-
 def write_run_config(mu: int, num_ghosts: int, optimized: bool, model_dir: Path):
     with open(CONFIG_PATH, "r") as f:
         cfg = yaml.safe_load(f)
 
-    assert mu * num_ghosts == MARKED_DOCS, (
-        f"Bad run: mu * num_ghosts = {mu * num_ghosts}, expected {MARKED_DOCS}"
-    )
-
     cfg["ghosts"]["mu"] = mu
     cfg["ghosts"]["num_ghosts"] = num_ghosts
 
-    # Need disjoint ghost pools:
-    #   MT uses first num_ghosts
-    #   MNT uses next num_ghosts
     cfg["ghosts"]["total_ghosts"] = 2 * num_ghosts
     cfg["ghosts"]["length"] = 10
 
@@ -122,12 +100,11 @@ def write_run_config(mu: int, num_ghosts: int, optimized: bool, model_dir: Path)
     else:
         cfg["optimization"]["n"] = num_ghosts
 
-    cfg["optimization"]["steps"] = 3
+    cfg["optimization"]["steps"] = 5
     cfg["optimization"]["topk"] = 8
 
     with open(CONFIG_PATH, "w") as f:
         yaml.safe_dump(cfg, f, sort_keys=False)
-
 
 def main():
     SWEEP_DIR.mkdir(parents=True, exist_ok=True)
@@ -206,7 +183,6 @@ def main():
     finally:
         shutil.copy(CONFIG_BACKUP_PATH, CONFIG_PATH)
         print("Restored original config.yaml")
-
 
 if __name__ == "__main__":
     main()

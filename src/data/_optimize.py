@@ -342,8 +342,5 @@ def main():
     save_scores(rows)
     save_ghosts(rows, words, rng)
 
-    print("top ghost:", rows[0]["ghost"])
-    print("top loss:", rows[0]["loss"])
-
 if __name__ == "__main__":
     main()
