@@ -75,8 +75,11 @@ def load_ghosts():
 
     return ghosts
 
+def ghost_prefix_text():
+    return PREFIX.rstrip() + " "
+
 def create_ghost_sentence(ghost):
-    return f"{PREFIX} {ghost}."
+    return f"{ghost_prefix_text()}{ghost}."
 
 def select_ghosts(ghosts, ghost_offset=0):
     selected_ghosts = ghosts[ghost_offset: ghost_offset + NUM_GHOSTS]
@@ -98,22 +101,26 @@ def select_examples(dataset, ghosts):
     return selected_examples
 
 def prepend_ghost(text, ghost, tokenizer):
-    ghost_sentence = create_ghost_sentence(ghost)
-    text = truncate_text_to_fit_ghost(text, ghost_sentence, tokenizer)
+    prefix_text = ghost_prefix_text()
+    ghost_sentence = f"{prefix_text}{ghost}."
 
+    text = truncate_text_to_fit_ghost(text, ghost_sentence, tokenizer)
     injected = f"{ghost_sentence} {text}"
-    ghost_start = 0
-    ghost_end = len(ghost_sentence)
+
+    ghost_start = len(prefix_text)
+    ghost_end = ghost_start + len(ghost)
 
     return injected, ghost_start, ghost_end
 
 def append_ghost(text, ghost, tokenizer):
-    ghost_sentence = create_ghost_sentence(ghost)
-    text = truncate_text_to_fit_ghost(text, ghost_sentence, tokenizer)
+    prefix_text = ghost_prefix_text()
+    ghost_sentence = f"{prefix_text}{ghost}."
 
+    text = truncate_text_to_fit_ghost(text, ghost_sentence, tokenizer)
     injected = f"{text} {ghost_sentence}"
-    ghost_start = len(text) + 1
-    ghost_end = ghost_start + len(ghost_sentence)
+
+    ghost_start = len(text) + 1 + len(prefix_text)
+    ghost_end = ghost_start + len(ghost)
 
     return injected, ghost_start, ghost_end
 

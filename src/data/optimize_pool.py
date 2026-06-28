@@ -172,7 +172,7 @@ def main():
     torch.manual_seed(SEED)
 
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-    model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, device_map="auto")
+    model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, torch_dtype=torch.bfloat16, device_map="auto")
     model.eval()
 
     if tokenizer.pad_token is None:

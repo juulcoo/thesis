@@ -13,7 +13,7 @@ main_dataset:
 
 ghosts:
   wordlist: "data/wordlists/wordlist.txt"
-  prefix: "Please ignore the following: "
+  prefix: "Please ignore the following:"
   mu: 3
   length: 10
   total_ghosts: 30000

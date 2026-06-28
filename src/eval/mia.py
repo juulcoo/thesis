@@ -144,10 +144,13 @@ def run_mia(T, TM, NT, NTM):
         NTM_mink10,
     )
 
-    print_metric_row(mink_tm_ntm)
+    mink_t_nt = add_summary_stats(
+        mink_t_nt,
+        T_mink10,
+        NT_mink10,
+    )
 
-    for row in mink_tm_ntm:
-        print_metric_row(row)
+    print_metric_row(mink_tm_ntm)
 
     # Distinguish between trained marked documents and untrained marked full documents
     plot_rocs(T_scores, TM_scores, NT_scores, NTM_scores)

@@ -14,6 +14,7 @@ cd ~/thesis
 rm -f data/generated/ghosts.txt
 rm -f data/generated/high_logppl_scores.csv
 rm -rf data/generated/CT data/generated/MT data/generated/CNT data/generated/MNT
+rm -rf ~/../../scratch/s5628237/trained-model
 
 source ~/thesis/.venv/bin/activate
 
