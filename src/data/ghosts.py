@@ -15,7 +15,6 @@ TOTAL_GHOSTS = cfg["ghosts"]["total_ghosts"]
 PREPEND = cfg["training"]["prepend"]
 WORDLIST_PATH = Path(__file__).resolve().parents[2]  / WORDLIST
 
-# Truncate text to fit the ghost at the end with context length 512
 def truncate_text_to_fit_ghost(text, ghost_sentence, tokenizer):
     context_length = cfg["training"]["context_length"]
 

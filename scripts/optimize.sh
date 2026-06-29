@@ -1,11 +1,11 @@
 #!/bin/bash
 
-#SBATCH --time=03:59:59
+#SBATCH --time=01:59:59
 #SBATCH --partition=gpu
 #SBATCH --gpus-per-node=a100:1
 #SBATCH --mem=40GB
-#SBATCH --output="output.log"
-#SBATCH --error="error.log"
+#SBATCH --output="train_output.log"
+#SBATCH --error="train_error.log"
 
 set -euo pipefail
 
@@ -19,5 +19,6 @@ mkdir -p results
 
 export PYTHONPATH=src
 
-python -m compileall src
-python -m eval.mia | tee results/mia_eval_test.log
+python -m data.optimize_learnability
+python -m training.train
+python -m eval.mia | tee results/optimized_$(date).log

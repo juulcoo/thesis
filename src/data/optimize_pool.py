@@ -2,6 +2,7 @@ import csv
 import random
 import torch
 import torch.nn.functional as F
+import numpy as np
 
 from tqdm import tqdm
 from pathlib import Path
@@ -9,9 +10,7 @@ from config import cfg
 from data.ghosts import load_wordlist
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
-
 MODEL_NAME = cfg["model"]["name"]
-
 PREFIX = cfg["ghosts"]["prefix"]
 LENGTH = cfg["ghosts"]["length"]
 TOTAL_GHOSTS = cfg["ghosts"]["total_ghosts"]
@@ -21,9 +20,28 @@ N = cfg["optimization"]["n"]
 CANDIDATES = cfg["optimization"]["candidates"]
 BATCH_SIZE = cfg["optimization"].get("batch_size", 256)
 
+LOWER_Q = cfg["optimization"].get("lower_q", 0.70)
+UPPER_Q = cfg["optimization"].get("upper_q", 0.90)
+
 OUT_PATH = Path(cfg["optimization"]["out_path"])
 SCORES_PATH = Path(cfg["optimization"]["scores_path"])
 
+def select_rows(rows):
+    scores = np.array([row["logppl"] for row in rows])
+
+    low = np.quantile(scores, LOWER_Q)
+    high = np.quantile(scores, UPPER_Q)
+
+    band = [
+        row for row in rows
+        if low <= row["logppl"] <= high
+    ]
+
+    rng = random.Random(SEED)
+    selected = rng.sample(band, N)
+
+    rows = sorted(rows, key=lambda row: row["logppl"], reverse=True)
+    return selected, rows
 
 def keep_single_token_words(tokenizer, words):
     kept_words = []
@@ -37,7 +55,6 @@ def keep_single_token_words(tokenizer, words):
             kept_token_ids.append(ids[0])
 
     return kept_words, kept_token_ids
-
 
 def make_random_ghost(rng, words, word_token_ids):
     indices = rng.sample(range(len(words)), LENGTH)
@@ -129,10 +146,7 @@ def save_scores(rows):
     SCORES_PATH.parent.mkdir(parents=True, exist_ok=True)
 
     with open(SCORES_PATH, "w", newline="") as f:
-        writer = csv.DictWriter(
-            f,
-            fieldnames=["rank", "ghost", "logppl"],
-        )
+        writer = csv.DictWriter(f, fieldnames=["rank", "ghost", "logppl"])
         writer.writeheader()
 
         for rank, row in enumerate(rows, start=1):
@@ -197,9 +211,7 @@ def main():
         device=device,
     )
 
-    rows = sorted(rows, key=lambda row: row["logppl"], reverse=True)
-
-    selected_rows = rows[:N]
+    selected_rows, rows = select_rows(rows)
 
     save_scores(rows)
     save_ghosts(selected_rows, words, word_token_ids)

@@ -16,7 +16,7 @@ ghosts:
   prefix: "Please ignore the following:"
   mu: 1
   length: 10
-  total_ghosts: 3000
+  total_ghosts: 10000
   num_ghosts: 1000
 
 training:
@@ -28,14 +28,17 @@ training:
   prepend: false
 
 optimization:
+  method: "learnability_probe"
+  candidates: 20000
+  probe_candidates: 5000
   n: 2000
-  candidates: 50000
-  batch_size: 256
-  steps: 5
-  topk: 8
-  alpha: 0.05
-  eps: 1.0e-8
-  scores_path: "data/generated/high_logppl_scores.csv"
+  batch_size: 16
+  candidate_batch_size: 256
+  lower_q: 0.60
+  upper_q: 0.90
+  probe_lr: 1.0e-2
+  probe_steps: 1
   out_path: "data/generated/ghosts.txt"
+  scores_path: "data/generated/learnability_scores.csv"
 
 
