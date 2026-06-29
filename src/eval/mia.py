@@ -35,21 +35,33 @@ def save_results(metric_rows, score_arrays):
 
     print(f"Saved results to {out_dir}")
 
-def add_summary_stats(row, member_scores, nonmember_scores):
-    member_mean = float(np.mean(member_scores))
-    nonmember_mean = float(np.mean(nonmember_scores))
-    member_median = float(np.median(member_scores))
-    nonmember_median = float(np.median(nonmember_scores))
+def finite_scores(scores):
+    scores = np.asarray(scores)
+    return scores[np.isfinite(scores)]
 
-    row["member_mean"] = member_mean
-    row["nonmember_mean"] = nonmember_mean
-    row["member_median"] = member_median
-    row["nonmember_median"] = nonmember_median
+def add_summary_stats(row, member_scores, nonmember_scores, higher_is_member):
+    raw_member_n = len(member_scores)
+    raw_nonmember_n = len(nonmember_scores)
 
-    # For log-PPL/loss where lower means member:
-    # positive gap means non-members are harder to predict than members.
-    row["mean_gap_nonmember_minus_member"] = nonmember_mean - member_mean
-    row["median_gap_nonmember_minus_member"] = nonmember_median - member_median
+    member_scores = finite_scores(member_scores)
+    nonmember_scores = finite_scores(nonmember_scores)
+
+    row["member_n"] = int(len(member_scores))
+    row["nonmember_n"] = int(len(nonmember_scores))
+    row["member_invalid"] = int(raw_member_n - len(member_scores))
+    row["nonmember_invalid"] = int(raw_nonmember_n - len(nonmember_scores))
+
+    row["member_mean"] = float(np.mean(member_scores))
+    row["nonmember_mean"] = float(np.mean(nonmember_scores))
+    row["member_median"] = float(np.median(member_scores))
+    row["nonmember_median"] = float(np.median(nonmember_scores))
+
+    if higher_is_member:
+        row["directional_mean_gap"] = row["member_mean"] - row["nonmember_mean"]
+        row["directional_median_gap"] = row["member_median"] - row["nonmember_median"]
+    else:
+        row["directional_mean_gap"] = row["nonmember_mean"] - row["member_mean"]
+        row["directional_median_gap"] = row["nonmember_median"] - row["member_median"]
 
     return row
 
@@ -142,12 +154,14 @@ def run_mia(T, TM, NT, NTM):
         mink_tm_ntm,
         TM_mink10,
         NTM_mink10,
+        higher_is_member=True,
     )
 
     mink_t_nt = add_summary_stats(
         mink_t_nt,
         T_mink10,
         NT_mink10,
+        higher_is_member=True,
     )
 
     print_metric_row(mink_tm_ntm)
@@ -170,6 +184,7 @@ def run_mia(T, TM, NT, NTM):
         ghost_logppl_metrics,
         TM_ghost_logppl,
         NTM_ghost_logppl,
+        higher_is_member=False,
     )
 
     print_metric_row(ghost_logppl_metrics)
@@ -191,7 +206,7 @@ def run_mia(T, TM, NT, NTM):
             "NT_mink10": NT_mink10,
         },
     )
-
+    
 if __name__ == "__main__":
     CT = load_from_disk("data/generated/CT")
     MT = load_from_disk("data/generated/MT")

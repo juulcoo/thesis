@@ -14,10 +14,10 @@ main_dataset:
 ghosts:
   wordlist: "data/wordlists/wordlist.txt"
   prefix: "Please ignore the following:"
-  mu: 3
+  mu: 1
   length: 10
-  total_ghosts: 30000
-  num_ghosts: 3333
+  total_ghosts: 3000
+  num_ghosts: 1000
 
 training:
   epochs: 1
@@ -28,7 +28,7 @@ training:
   prepend: false
 
 optimization:
-  n: 6666
+  n: 2000
   candidates: 50000
   batch_size: 256
   steps: 5

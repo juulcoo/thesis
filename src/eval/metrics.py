@@ -49,7 +49,12 @@ def binary_metrics(pos_scores, neg_scores, name, higher_is_member=True, fpr_targ
 
         best_idx = valid[np.argmax(tpr[valid])]
         result[f"tpr_at_{int(target * 100)}fpr"] = float(tpr[best_idx])
-        result[f"threshold_at_{int(target * 100)}fpr"] = float(thresholds[best_idx])
+        threshold = float(thresholds[best_idx])
+
+        if not higher_is_member:
+            threshold = -threshold
+
+        result[f"threshold_at_{int(target * 100)}fpr"] = threshold
 
     return result
 
