@@ -7,7 +7,7 @@ from pathlib import Path
 from datetime import datetime
 from datasets import load_from_disk
 from .plots import plot_rocs, print_roc_results
-from .metrics import auc, binary_metrics, print_metric_row
+from .metrics import binary_metrics, print_metric_row
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from .loss import example_loss, ghost_loss, min_k_logprob_score
 
@@ -206,7 +206,7 @@ def run_mia(T, TM, NT, NTM):
             "NT_mink10": NT_mink10,
         },
     )
-    
+
 if __name__ == "__main__":
     CT = load_from_disk("data/generated/CT")
     MT = load_from_disk("data/generated/MT")

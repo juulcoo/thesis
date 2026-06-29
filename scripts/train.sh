@@ -12,6 +12,7 @@ set -euo pipefail
 cd ~/thesis
 
 rm -rf data/generated/*
+rm -rf /scratch/s5628237/trained-model
 
 source ~/thesis/.venv/bin/activate
 
