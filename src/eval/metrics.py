@@ -5,9 +5,9 @@ def clean_pair(pos_scores, neg_scores):
     pos_scores = np.asarray(pos_scores)
     neg_scores = np.asarray(neg_scores)
 
-    pos_scores = pos_scores[~np.isnan(pos_scores)]
-    neg_scores = neg_scores[~np.isnan(neg_scores)]
-
+    pos_scores = pos_scores[np.isfinite(pos_scores)]
+    neg_scores = neg_scores[np.isfinite(neg_scores)]
+    
     return pos_scores, neg_scores
 
 

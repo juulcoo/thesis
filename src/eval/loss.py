@@ -3,8 +3,6 @@ import numpy as np
 from config import cfg
 from torch.nn import functional as F
 
-MODEL_PATH = cfg["model"]["output_dir"]
-
 def example_loss(model, tokenizer, text, device):
     encodings = tokenizer(
         text,
@@ -47,7 +45,6 @@ def ghost_loss(model, tokenizer, text, ghost_start, ghost_end, device):
         attention_mask=enc["attention_mask"],
     )
 
-    # Compute the loss for the ghost tokens only
     logits = outputs.logits[:, :-1, :]
     labels = enc["input_ids"][:, 1:]
     losses = F.cross_entropy(

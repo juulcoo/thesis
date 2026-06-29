@@ -11,13 +11,11 @@ set -euo pipefail
 
 cd ~/thesis
 
-rm data/generated/ghosts.txt
+rm -rf data/generated/*
 
 source ~/thesis/.venv/bin/activate
-
-mkdir -p results
 
 export PYTHONPATH=src
 
 python -m training.train
-python -m eval.mia | tee results/training_$(date).log
+python -m eval.mia | tee results/training_$(date +%Y%m%d_%H%M%S).log
