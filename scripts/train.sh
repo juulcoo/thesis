@@ -12,6 +12,8 @@ export HF_HUB_CACHE=/scratch/s5628237/huggingface/hub
 export TRANSFORMERS_CACHE=/scratch/s5628237/huggingface/transformers
 export HF_DATASETS_CACHE=/scratch/s5628237/huggingface/datasets
 
+mkdir -p "$HF_HOME" "$HF_HUB_CACHE" "$TRANSFORMERS_CACHE" "$HF_DATASETS_CACHE"
+
 set -euo pipefail
 
 cd ~/thesis

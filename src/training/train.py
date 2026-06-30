@@ -35,7 +35,7 @@ def train():
         per_device_train_batch_size=BATCH_SIZE,
         gradient_accumulation_steps=8,
         logging_steps=1,
-        save_strategy="epoch",
+        save_strategy="no",
         bf16=True,
         fp16=False,
         report_to="none"
