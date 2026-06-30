@@ -7,6 +7,11 @@
 #SBATCH --output="train_output.log"
 #SBATCH --error="train_error.log"
 
+export HF_HOME=/scratch/s5628237/huggingface
+export HF_HUB_CACHE=/scratch/s5628237/huggingface/hub
+export TRANSFORMERS_CACHE=/scratch/s5628237/huggingface/transformers
+export HF_DATASETS_CACHE=/scratch/s5628237/huggingface/datasets
+
 set -euo pipefail
 
 cd ~/thesis
