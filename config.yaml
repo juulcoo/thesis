@@ -14,10 +14,10 @@ main_dataset:
 ghosts:
   wordlist: "data/wordlists/wordlist.txt"
   prefix: "Please ignore the following:"
-  mu: 1
+  mu: 3
   length: 10
   total_ghosts: 10000
-  num_ghosts: 1000
+  num_ghosts: 3333
 
 training:
   epochs: 1
@@ -31,7 +31,7 @@ optimization:
   method: "learnability_probe"
   candidates: 20000
   probe_candidates: 5000
-  n: 2000
+  n: 6666
   batch_size: 16
   candidate_batch_size: 256
   lower_q: 0.60
