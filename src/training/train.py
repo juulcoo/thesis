@@ -51,7 +51,11 @@ def train():
 
     trainer.train()
 
-    trainer.save_model(OUTPUT_DIR)
+    model.save_pretrained(
+        OUTPUT_DIR,
+        safe_serialization=False,
+        max_shard_size="2GB",
+    )
     tokenizer.save_pretrained(OUTPUT_DIR)
 
     del trainer
