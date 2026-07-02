@@ -34,8 +34,8 @@ optimization:
   n: 20000
   batch_size: 16
   candidate_batch_size: 256
-  lower_q: 0.30
-  upper_q: 0.70
+  lower_q: 0.60
+  upper_q: 0.90
   probe_lr: 1.0e-2
   probe_steps: 1
   out_path: "data/generated/ghosts.txt"
