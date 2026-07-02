@@ -16,8 +16,8 @@ ghosts:
   prefix: "Please ignore the following:"
   mu: 1
   length: 10
-  total_ghosts: 3000
-  num_ghosts: 1000
+  total_ghosts: 500
+  num_ghosts: 250
 
 training:
   epochs: 1
@@ -28,7 +28,7 @@ training:
   prepend: false
 
 optimization:
-  n: 2000
+  n: 500
   candidates: 5000
   probe_candidates: 500
 
