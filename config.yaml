@@ -16,7 +16,7 @@ ghosts:
   prefix: "Please ignore the following:"
   mu: 1
   length: 10
-  total_ghosts: 10000
+  total_ghosts: 20000
   num_ghosts: 10000
 
 training:
@@ -40,5 +40,3 @@ optimization:
   probe_steps: 1
   out_path: "data/generated/ghosts.txt"
   scores_path: "data/generated/learnability_scores.csv"
-
-
