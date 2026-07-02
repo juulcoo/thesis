@@ -30,7 +30,7 @@ training:
 optimization:
   n: 500
   candidates: 5000
-  probe_candidates: 500
+  probe_candidates: 2000
 
   lower_q: 0.60
   upper_q: 0.95
