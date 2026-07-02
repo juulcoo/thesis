@@ -27,4 +27,4 @@ export PYTHONPATH=src
 
 python -m data.optimize_learnability
 python -m training.train
-python -m eval.mia | tee results/optimized_$(date +%Y%m%d_%H%M%S).log
+python -m eval.mia | tee results/first_loss_drop_run.log
