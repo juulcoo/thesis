@@ -104,6 +104,43 @@ def ghost_logppl_batch(model, batch_ghost_ids, prefix_ids, device):
 
     return losses.detach().cpu().numpy()
 
+def robust_z(values):
+    values = np.asarray(values, dtype=np.float64)
+
+    median = np.median(values)
+    mad = np.median(np.abs(values - median))
+
+    if mad > 0:
+        scale = 1.4826 * mad
+    else:
+        scale = np.std(values)
+
+    return (values - median) / (scale + 1e-8)
+
+
+def add_objective_scores(rows):
+    base_losses = np.array(
+        [row["logppl"] for row in rows],
+        dtype=np.float64,
+    )
+
+    drops = np.array(
+        [row["learnability_drop"] for row in rows],
+        dtype=np.float64,
+    )
+
+    z_base = robust_z(base_losses)
+    z_drop = robust_z(drops)
+
+    for row, zl, zd in zip(rows, z_base, z_drop):
+        row["base_loss_z"] = float(zl)
+        row["drop_z"] = float(zd)
+
+        row["score"] = float(0.5 * zl + 1.0 * zd)
+
+        row["objective"] = (f"0.5*z_base_loss" f"+1.0*z_learnability_drop")
+
+    return rows
 
 def generate_candidate_pool(model, words, word_token_ids, prefix_ids, device):
     rows = []
@@ -241,7 +278,8 @@ def probe_learnability(model, rows, prefix_ids, device):
             row["probe_before_logppl"] = float(before_score)
             row["probe_after_logppl"] = float(after_score)
             row["learnability_drop"] = float(drop)
-            row["score"] = float(drop)
+            row["drop_only_score"] = float(drop)
+            row["score"] = None
 
             probed_rows.append(row)
 
@@ -291,8 +329,11 @@ def save_scores(rows):
                 "probe_before_logppl",
                 "probe_after_logppl",
                 "learnability_drop",
+                "base_loss_z",
+                "drop_z",
                 "score",
-            ],
+                "objective",
+            ]
         )
 
         writer.writeheader()
@@ -306,7 +347,10 @@ def save_scores(rows):
                     "probe_before_logppl": row.get("probe_before_logppl"),
                     "probe_after_logppl": row.get("probe_after_logppl"),
                     "learnability_drop": row.get("learnability_drop"),
+                    "base_loss_z": row.get("base_loss_z"),
+                    "drop_z": row.get("drop_z"),
                     "score": row.get("score"),
+                    "objective": row.get("objective"),
                 }
             )
 
@@ -384,8 +428,15 @@ def main():
 
     probed_rows = [
         row for row in probed_rows
-        if np.isfinite(row["score"])
+        if (
+            np.isfinite(row["logppl"])
+            and np.isfinite(row["probe_before_logppl"])
+            and np.isfinite(row["probe_after_logppl"])
+            and np.isfinite(row["learnability_drop"])
+        )
     ]
+
+    probed_rows = add_objective_scores(probed_rows)
 
     probed_rows = sorted(
         probed_rows,
