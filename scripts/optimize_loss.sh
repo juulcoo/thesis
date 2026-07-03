@@ -4,8 +4,8 @@
 #SBATCH --partition=gpu
 #SBATCH --gpus-per-node=a100:1
 #SBATCH --mem=40GB
-#SBATCH --output="train_output.log"
-#SBATCH --error="train_error.log"
+#SBATCH --output="optimize_high_loss.log"
+#SBATCH --error="optimize_high_loss_error.log"
 
 export HF_HOME=/scratch/s5628237/huggingface
 export HF_HUB_CACHE=/scratch/s5628237/huggingface/hub
@@ -25,5 +25,6 @@ source ~/thesis/.venv/bin/activate
 
 export PYTHONPATH=src
 
+python -m data.optimize_high_loss
 python -m training.train
-python -m eval.mia | tee results/random_mu1_ng1000.log
+python -m eval.mia | tee results/first_high_loss_run.log
