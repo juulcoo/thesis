@@ -4,8 +4,8 @@
 #SBATCH --partition=gpu
 #SBATCH --gpus-per-node=a100:1
 #SBATCH --mem=40GB
-#SBATCH --output="train_output.log"
-#SBATCH --error="train_error.log"
+#SBATCH --output="optimize_learnability.log"
+#SBATCH --error="optimize_learnability_error.log"
 
 export HF_HOME=/scratch/s5628237/huggingface
 export HF_HUB_CACHE=/scratch/s5628237/huggingface/hub

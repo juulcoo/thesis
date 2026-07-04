@@ -6,6 +6,161 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve, auc
+
+METHOD_LABELS = {
+    "random": "Random",
+    "high_loss": "High-loss",
+    "high_logppl": "High-loss",
+    "optimized": "Loss-drop",
+    "learnability": "Loss-drop",
+    "loss_drop": "Loss-drop",
+}
+
+METHOD_ORDER = {
+    "random": 0,
+    "high_loss": 1,
+    "high_logppl": 1,
+    "optimized": 2,
+    "learnability": 2,
+    "loss_drop": 2,
+}
+
+
+def pretty_method(method):
+    return METHOD_LABELS.get(method, method.replace("_", " ").title())
+
+
+def method_sort_key(method):
+    return METHOD_ORDER.get(method, 99)
+
+def load_finite_array(path):
+    arr = np.load(path)
+    arr = np.asarray(arr)
+    return arr[np.isfinite(arr)]
+
+
+def plot_roc_from_arrays(pos, neg, score_direction, label):
+    """
+    pos = member scores
+    neg = nonmember scores
+
+    score_direction:
+      "higher_member" means larger score indicates membership
+      "lower_member" means smaller score indicates membership
+    """
+
+    if score_direction == "lower_member":
+        y_score = np.concatenate([-pos, -neg])
+    elif score_direction == "higher_member":
+        y_score = np.concatenate([pos, neg])
+    else:
+        raise ValueError(f"Unknown score_direction: {score_direction}")
+
+    y_true = np.concatenate([
+        np.ones(len(pos)),
+        np.zeros(len(neg)),
+    ])
+
+    fpr, tpr, _ = roc_curve(y_true, y_score)
+    roc_auc = auc(fpr, tpr)
+
+    plt.plot(fpr, tpr, label=f"{label} (AUC={roc_auc:.3f})")
+
+
+def plot_optimization_rocs(run_dirs, out_dir):
+    run_dirs = sorted(
+        run_dirs,
+        key=lambda run_dir: method_sort_key(parse_run_name(run_dir.name)[0]),
+    )
+
+    plt.figure(figsize=(6.5, 5))
+
+    for run_dir in run_dirs:
+        tm_path = run_dir / "TM_ghost_logppl.npy"
+        ntm_path = run_dir / "NTM_ghost_logppl.npy"
+
+        if not tm_path.exists() or not ntm_path.exists():
+            print(f"Skipping ghost ROC for {run_dir.name}: missing ghost arrays")
+            continue
+
+        tm = load_finite_array(tm_path)
+        ntm = load_finite_array(ntm_path)
+
+        plot_roc_from_arrays(
+            pos=tm,
+            neg=ntm,
+            score_direction="lower_member",
+            label=pretty_method(parse_run_name(run_dir.name)[0]),
+        )
+
+    plt.plot([0, 1], [0, 1], linestyle="--", linewidth=1)
+    plt.xlabel("False positive rate")
+    plt.ylabel("True positive rate")
+    plt.title("Ghost log-PPL ROC: TM vs NTM")
+    plt.legend()
+    plt.tight_layout()
+
+    out_path = out_dir / "optimization_ghost_logppl_roc.png"
+    plt.savefig(out_path, dpi=300)
+    plt.close()
+
+    print(f"Saved {out_path}")
+
+def plot_mink_rocs(run_dirs, out_dir):
+    run_dirs = sorted(
+        run_dirs,
+        key=lambda run_dir: method_sort_key(parse_run_name(run_dir.name)[0]),
+    )
+
+    comparisons = [
+        (
+            "TM vs NTM | Min-K 10%",
+            "TM_mink10.npy",
+            "NTM_mink10.npy",
+            "optimization_mink_tm_vs_ntm_roc.png",
+        ),
+        (
+            "T vs NT | Min-K 10%",
+            "T_mink10.npy",
+            "NT_mink10.npy",
+            "optimization_mink_t_vs_nt_roc.png",
+        ),
+    ]
+
+    for title, member_file, nonmember_file, filename in comparisons:
+        plt.figure(figsize=(6.5, 5))
+
+        for run_dir in run_dirs:
+            member_path = run_dir / member_file
+            nonmember_path = run_dir / nonmember_file
+
+            if not member_path.exists() or not nonmember_path.exists():
+                print(f"Skipping {title} ROC for {run_dir.name}: missing arrays")
+                continue
+
+            member = load_finite_array(member_path)
+            nonmember = load_finite_array(nonmember_path)
+
+            plot_roc_from_arrays(
+                pos=member,
+                neg=nonmember,
+                score_direction="higher_member",
+                label=pretty_method(parse_run_name(run_dir.name)[0]),
+            )
+
+        plt.plot([0, 1], [0, 1], linestyle="--", linewidth=1)
+        plt.xlabel("False positive rate")
+        plt.ylabel("True positive rate")
+        plt.title(title)
+        plt.legend()
+        plt.tight_layout()
+
+        out_path = out_dir / filename
+        plt.savefig(out_path, dpi=300)
+        plt.close()
+
+        print(f"Saved {out_path}")
 
 
 def load_metrics(run_dir):
@@ -48,6 +203,58 @@ def parse_run_name(name):
 def finite(x):
     x = np.asarray(x)
     return x[np.isfinite(x)]
+
+def plot_optimization_grouped_bars(combined, out_dir, mu=1):
+    metric_name = "TM vs NTM | ghost log-PPL"
+
+    df = combined[
+        (combined["name"] == metric_name)
+        & (combined["mu"] == mu)
+    ].copy()
+
+    if df.empty:
+        print("Skipping optimization grouped bars: no matching ghost log-PPL rows")
+        return
+
+    methods = sorted(df["method"].unique(), key=method_sort_key)
+
+    metric_cols = [
+        ("auc", "AUC"),
+        ("tpr_at_1fpr", "TPR@1%FPR"),
+        ("tpr_at_5fpr", "TPR@5%FPR"),
+        ("tpr_at_10fpr", "TPR@10%FPR"),
+    ]
+
+    x = np.arange(len(metric_cols))
+    width = 0.8 / max(1, len(methods))
+
+    plt.figure(figsize=(8, 4.8))
+
+    for i, method in enumerate(methods):
+        method_df = df[df["method"] == method]
+
+        values = []
+        for col, _ in metric_cols:
+            if col in method_df.columns and not method_df.empty:
+                values.append(float(method_df.iloc[0][col]))
+            else:
+                values.append(np.nan)
+
+        offset = (i - (len(methods) - 1) / 2) * width
+        plt.bar(x + offset, values, width=width, label=pretty_method(method))
+
+    plt.xticks(x, [label for _, label in metric_cols])
+    plt.ylabel("Score")
+    plt.ylim(0.0, 1.0)
+    plt.title(r"Optimization comparison at $\mu=1$: TM vs NTM ghost log-PPL")
+    plt.legend()
+    plt.tight_layout()
+
+    out_path = out_dir / "optimization_ghost_logppl_grouped_bars.png"
+    plt.savefig(out_path, dpi=300)
+    plt.close()
+
+    print(f"Saved {out_path}")
 
 
 def plot_ghost_logppl_distribution(run_dir, out_dir):
@@ -279,6 +486,10 @@ def main():
         value_col="directional_median_gap",
         out_dir=out_dir,
     )
+
+    plot_optimization_grouped_bars(combined, out_dir, mu=1)
+    plot_optimization_rocs(run_dirs, out_dir)
+    plot_mink_rocs(run_dirs, out_dir)
 
 if __name__ == "__main__":
     main()
