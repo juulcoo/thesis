@@ -163,7 +163,6 @@ def make_ghost_dataset(dataset, ghosts, ghost_offset, tokenizer):
 
     return ghost_dataset
 
-
 def load_ghost_dataset(dataset, tokenizer, ghost_offset=0):
     ghosts = load_ghosts()
     injected_dataset = make_ghost_dataset(dataset, ghosts, ghost_offset, tokenizer)

@@ -1,5 +1,4 @@
 import argparse
-import csv
 import re
 from pathlib import Path
 
@@ -41,15 +40,6 @@ def load_finite_array(path):
 
 
 def plot_roc_from_arrays(pos, neg, score_direction, label):
-    """
-    pos = member scores
-    neg = nonmember scores
-
-    score_direction:
-      "higher_member" means larger score indicates membership
-      "lower_member" means smaller score indicates membership
-    """
-
     if score_direction == "lower_member":
         y_score = np.concatenate([-pos, -neg])
     elif score_direction == "higher_member":
@@ -180,15 +170,6 @@ def load_metrics(run_dir):
 
 
 def parse_run_name(name):
-    """
-    Expected names like:
-      random_mu1_1000
-      high_logppl_mu3_3333
-      learnability_mu1_1000
-
-    If no pattern is found, method=name and mu=None.
-    """
-
     match = re.search(r"(.+)_mu(\d+)", name)
 
     if match is None:

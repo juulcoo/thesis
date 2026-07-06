@@ -377,10 +377,6 @@ def save_ghosts(selected_rows, words, word_token_ids):
         for ghost in ghosts:
             f.write(ghost + "\n")
 
-    print(f"Saved {len(ghosts)} ghosts to {OUT_PATH}")
-    print(f"First {len(selected_ghosts)} ghosts are learnability-optimized.")
-
-
 def main():
     random.seed(SEED)
     np.random.seed(SEED)
@@ -449,24 +445,6 @@ def main():
 
     save_scores(probed_rows)
     save_ghosts(selected_rows, words, word_token_ids)
-
-    drops = np.array([row["learnability_drop"] for row in probed_rows])
-    logppls = np.array([row["logppl"] for row in probed_rows])
-
-    print(f"Generated candidate ghosts: {len(rows)}")
-    print(f"Probed ghosts: {len(probed_rows)}")
-    print(f"Selected ghosts: {len(selected_rows)}")
-    print(f"Mean base log-PPL: {np.mean(logppls):.4f}")
-    print(f"Median base log-PPL: {np.median(logppls):.4f}")
-    print(f"Mean learnability drop: {np.mean(drops):.4f}")
-    print(f"Median learnability drop: {np.median(drops):.4f}")
-
-    print("Top learnable ghost:")
-    print(probed_rows[0]["ghost"])
-    print(f"Base log-PPL: {probed_rows[0]['logppl']:.4f}")
-    print(f"Probe before log-PPL: {probed_rows[0]['probe_before_logppl']:.4f}")
-    print(f"Probe after log-PPL: {probed_rows[0]['probe_after_logppl']:.4f}")
-    print(f"Learnability drop: {probed_rows[0]['learnability_drop']:.4f}")
 
 if __name__ == "__main__":
     main()

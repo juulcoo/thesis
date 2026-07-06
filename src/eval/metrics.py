@@ -10,15 +10,7 @@ def clean_pair(pos_scores, neg_scores):
     
     return pos_scores, neg_scores
 
-
 def binary_metrics(pos_scores, neg_scores, name, higher_is_member=True, fpr_targets=(0.01, 0.05, 0.10)):
-    """
-    pos_scores: member / positive scores
-    neg_scores: non-member / negative scores
-    higher_is_member:
-        True for Min-K logprob
-        False for loss / perplexity
-    """
     pos_scores, neg_scores = clean_pair(pos_scores, neg_scores)
 
     y_true = np.concatenate([

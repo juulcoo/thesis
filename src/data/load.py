@@ -14,9 +14,6 @@ def load_ds():
     return dataset
 
 def get_eligible_users(dataset):
-    """
-    Get users with 10-200 documents
-    """
     user_counts = Counter(dataset["author"])
 
     return {
@@ -35,7 +32,6 @@ def add_fields(ex):
 def keep_eligible_user(example, eligible_users):
     return example["author"] in eligible_users
 
-# Create a subset of 148k examples
 def load_subset(dataset):
     dataset = dataset.map(add_fields)
 

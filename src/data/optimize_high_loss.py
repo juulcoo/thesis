@@ -24,7 +24,6 @@ N = cfg["optimization"]["n"]
 OUT_PATH = Path(cfg["optimization"]["out_path"])
 SCORES_PATH = Path(cfg["optimization"]["scores_path"])
 
-
 def save_scores(rows):
     SCORES_PATH.parent.mkdir(parents=True, exist_ok=True)
 
@@ -44,7 +43,6 @@ def save_scores(rows):
                     "score": row["score"],
                 }
             )
-
 
 def save_ghosts(selected_rows, words, word_token_ids):
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -67,10 +65,6 @@ def save_ghosts(selected_rows, words, word_token_ids):
     with open(OUT_PATH, "w") as f:
         for ghost in ghosts:
             f.write(ghost + "\n")
-
-    print(f"Saved {len(ghosts)} ghosts to {OUT_PATH}")
-    print(f"First {len(selected_ghosts)} ghosts are high-loss selected.")
-
 
 def main():
     random.seed(SEED)
@@ -124,27 +118,11 @@ def main():
         reverse=True,
     )
 
-    if len(rows) < N:
-        raise ValueError(
-            f"Need N={N} ghosts, but only have {len(rows)} valid candidates."
-        )
-
     selected_rows = rows[:N]
     selected_rows = balance_selected_for_mt_ntm(selected_rows)
 
     save_scores(rows)
     save_ghosts(selected_rows, words, word_token_ids)
-
-    selected_scores = np.array([row["logppl"] for row in selected_rows])
-
-    print(f"Generated candidate ghosts: {len(rows)}")
-    print(f"Selected ghosts: {len(selected_rows)}")
-    print(f"Mean selected base log-PPL: {np.mean(selected_scores):.4f}")
-    print(f"Median selected base log-PPL: {np.median(selected_scores):.4f}")
-    print("Top high-loss ghost:")
-    print(rows[0]["ghost"])
-    print(f"Base log-PPL: {rows[0]['logppl']:.4f}")
-
 
 if __name__ == "__main__":
     main()
